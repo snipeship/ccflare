@@ -1,0 +1,12 @@
+apps/
+packages/
+docs/
+node_modules/
+bun.lock
+.git/
+.gitignore
+CLAUDE.md
+tsconfig.json
+biome.json
+*.ts
+*.tsx

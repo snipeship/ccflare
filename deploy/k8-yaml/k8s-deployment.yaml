@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ccflare-data
+  namespace: coder
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ceph-filesystem
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ccflare
+  namespace: coder
+  labels:
+    app: ccflare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ccflare
+  template:
+    metadata:
+      labels:
+        app: ccflare
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: ccflare
+        image: 192.168.96.61:30009/library/ccflare-fork:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: ccflare-data
+          mountPath: /app/data
+      volumes:
+      - name: ccflare-data
+        persistentVolumeClaim:
+          claimName: ccflare-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ccflare-service
+  namespace: coder
+spec:
+  selector:
+    app: ccflare
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
