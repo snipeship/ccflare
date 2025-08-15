@@ -6,7 +6,7 @@
       "devDependencies": {
         "@biomejs/biome": "2.1.2",
         "@types/bun": "latest",
-        "bun-types": "latest",
+        "bun-types": "^1.2.19",
         "typescript": "^5.0.0",
       },
     },

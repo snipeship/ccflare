@@ -6,6 +6,7 @@ import {
 	createAccountRenameHandler,
 	createAccountResumeHandler,
 	createAccountsListHandler,
+	createAccountsPriorityUpdateHandler,
 	createAccountTierUpdateHandler,
 } from "./handlers/accounts";
 import {
@@ -16,6 +17,12 @@ import {
 } from "./handlers/agents";
 import { createAgentUpdateHandler } from "./handlers/agents-update";
 import { createAnalyticsHandler } from "./handlers/analytics";
+import {
+	createAuthCheckHandler,
+	createLoginHandler,
+	createLogoutHandler,
+	requireAuth,
+} from "./handlers/auth";
 import { createConfigHandlers } from "./handlers/config";
 import { createHealthHandler } from "./handlers/health";
 import { createLogsStreamHandler } from "./handlers/logs";
@@ -71,69 +78,134 @@ export class APIRouter {
 		const agentsHandler = createAgentsListHandler(dbOps);
 		const workspacesHandler = createWorkspacesListHandler();
 		const requestsStreamHandler = createRequestsStreamHandler();
+		const loginHandler = createLoginHandler(dbOps);
+		const logoutHandler = createLogoutHandler();
+		const authCheckHandler = createAuthCheckHandler();
 
 		// Register routes
 		this.handlers.set("GET:/health", () => healthHandler());
-		this.handlers.set("GET:/api/stats", () => statsHandler());
-		this.handlers.set("POST:/api/stats/reset", () => statsResetHandler());
-		this.handlers.set("GET:/api/accounts", () => accountsHandler());
-		this.handlers.set("POST:/api/accounts", (req) => accountAddHandler(req));
-		this.handlers.set("POST:/api/oauth/init", (req) => oauthInitHandler(req));
-		this.handlers.set("POST:/api/oauth/callback", (req) =>
-			oauthCallbackHandler(req),
+
+		// Auth routes (no auth required)
+		this.handlers.set("POST:/api/auth/login", (req) => loginHandler(req));
+		this.handlers.set("POST:/api/auth/logout", (req) => logoutHandler(req));
+		this.handlers.set("GET:/api/auth/check", (req) => authCheckHandler(req));
+		// Protected routes (require authentication)
+		this.handlers.set(
+			"GET:/api/stats",
+			requireAuth(() => statsHandler()),
 		);
-		this.handlers.set("GET:/api/requests", (_req, url) => {
-			const limitParam = url.searchParams.get("limit");
-			const limit =
-				validateNumber(limitParam || "50", "limit", {
-					min: 1,
-					max: 1000,
-					integer: true,
-				}) || 50;
-			return requestsSummaryHandler(limit);
-		});
-		this.handlers.set("GET:/api/requests/detail", (_req, url) => {
-			const limitParam = url.searchParams.get("limit");
-			const limit =
-				validateNumber(limitParam || "100", "limit", {
-					min: 1,
-					max: 1000,
-					integer: true,
-				}) || 100;
-			return requestsDetailHandler(limit);
-		});
-		this.handlers.set("GET:/api/requests/stream", () =>
-			requestsStreamHandler(),
+		this.handlers.set(
+			"POST:/api/stats/reset",
+			requireAuth(() => statsResetHandler()),
 		);
-		this.handlers.set("GET:/api/config", () => configHandlers.getConfig());
-		this.handlers.set("GET:/api/config/strategy", () =>
-			configHandlers.getStrategy(),
+		this.handlers.set(
+			"GET:/api/accounts",
+			requireAuth(() => accountsHandler()),
 		);
-		this.handlers.set("POST:/api/config/strategy", (req) =>
-			configHandlers.setStrategy(req),
+		this.handlers.set(
+			"POST:/api/accounts",
+			requireAuth((req) => accountAddHandler(req)),
 		);
-		this.handlers.set("GET:/api/strategies", () =>
-			configHandlers.getStrategies(),
+		this.handlers.set(
+			"POST:/api/accounts/priorities",
+			requireAuth((req) => {
+				const priorityHandler = createAccountsPriorityUpdateHandler(dbOps);
+				return priorityHandler(req);
+			}),
 		);
-		this.handlers.set("GET:/api/config/model", () =>
-			configHandlers.getDefaultAgentModel(),
+		this.handlers.set(
+			"POST:/api/oauth/init",
+			requireAuth((req) => oauthInitHandler(req)),
 		);
-		this.handlers.set("POST:/api/config/model", (req) =>
-			configHandlers.setDefaultAgentModel(req),
+		this.handlers.set(
+			"POST:/api/oauth/callback",
+			requireAuth((req) => oauthCallbackHandler(req)),
 		);
-		this.handlers.set("GET:/api/logs/stream", () => logsStreamHandler());
-		this.handlers.set("GET:/api/logs/history", () => logsHistoryHandler());
-		this.handlers.set("GET:/api/analytics", (_req, url) => {
-			return analyticsHandler(url.searchParams);
-		});
-		this.handlers.set("GET:/api/agents", () => agentsHandler());
-		this.handlers.set("POST:/api/agents/bulk-preference", (req) => {
-			const bulkHandler = createBulkAgentPreferenceUpdateHandler(
-				this.context.dbOps,
-			);
-			return bulkHandler(req);
-		});
-		this.handlers.set("GET:/api/workspaces", () => workspacesHandler());
+		this.handlers.set(
+			"GET:/api/requests",
+			requireAuth((_req, url) => {
+				const limitParam = url.searchParams.get("limit");
+				const limit =
+					validateNumber(limitParam || "50", "limit", {
+						min: 1,
+						max: 1000,
+						integer: true,
+					}) || 50;
+				return requestsSummaryHandler(limit);
+			}),
+		);
+		this.handlers.set(
+			"GET:/api/requests/detail",
+			requireAuth((_req, url) => {
+				const limitParam = url.searchParams.get("limit");
+				const limit =
+					validateNumber(limitParam || "100", "limit", {
+						min: 1,
+						max: 1000,
+						integer: true,
+					}) || 100;
+				return requestsDetailHandler(limit);
+			}),
+		);
+		this.handlers.set(
+			"GET:/api/requests/stream",
+			requireAuth(() => requestsStreamHandler()),
+		);
+		this.handlers.set(
+			"GET:/api/config",
+			requireAuth(() => configHandlers.getConfig()),
+		);
+		this.handlers.set(
+			"GET:/api/config/strategy",
+			requireAuth(() => configHandlers.getStrategy()),
+		);
+		this.handlers.set(
+			"POST:/api/config/strategy",
+			requireAuth((req) => configHandlers.setStrategy(req)),
+		);
+		this.handlers.set(
+			"GET:/api/strategies",
+			requireAuth(() => configHandlers.getStrategies()),
+		);
+		this.handlers.set(
+			"GET:/api/config/model",
+			requireAuth(() => configHandlers.getDefaultAgentModel()),
+		);
+		this.handlers.set(
+			"POST:/api/config/model",
+			requireAuth((req) => configHandlers.setDefaultAgentModel(req)),
+		);
+		this.handlers.set(
+			"GET:/api/logs/stream",
+			requireAuth(() => logsStreamHandler()),
+		);
+		this.handlers.set(
+			"GET:/api/logs/history",
+			requireAuth(() => logsHistoryHandler()),
+		);
+		this.handlers.set(
+			"GET:/api/analytics",
+			requireAuth((_req, url) => {
+				return analyticsHandler(url.searchParams);
+			}),
+		);
+		this.handlers.set(
+			"GET:/api/agents",
+			requireAuth(() => agentsHandler()),
+		);
+		this.handlers.set(
+			"POST:/api/agents/bulk-preference",
+			requireAuth((req) => {
+				const bulkHandler = createBulkAgentPreferenceUpdateHandler(
+					this.context.dbOps,
+				);
+				return bulkHandler(req);
+			}),
+		);
+		this.handlers.set(
+			"GET:/api/workspaces",
+			requireAuth(() => workspacesHandler()),
+		);
 	}
 
 	/**
@@ -173,46 +245,41 @@ export class APIRouter {
 			// Account tier update
 			if (path.endsWith("/tier") && method === "POST") {
 				const tierHandler = createAccountTierUpdateHandler(this.context.dbOps);
-				return await this.wrapHandler((req) => tierHandler(req, accountId))(
-					req,
-					url,
-				);
+				return await this.wrapHandler(
+					requireAuth((req) => tierHandler(req, accountId)),
+				)(req, url);
 			}
 
 			// Account pause
 			if (path.endsWith("/pause") && method === "POST") {
 				const pauseHandler = createAccountPauseHandler(this.context.dbOps);
-				return await this.wrapHandler((req) => pauseHandler(req, accountId))(
-					req,
-					url,
-				);
+				return await this.wrapHandler(
+					requireAuth((req) => pauseHandler(req, accountId)),
+				)(req, url);
 			}
 
 			// Account resume
 			if (path.endsWith("/resume") && method === "POST") {
 				const resumeHandler = createAccountResumeHandler(this.context.dbOps);
-				return await this.wrapHandler((req) => resumeHandler(req, accountId))(
-					req,
-					url,
-				);
+				return await this.wrapHandler(
+					requireAuth((req) => resumeHandler(req, accountId)),
+				)(req, url);
 			}
 
 			// Account rename
 			if (path.endsWith("/rename") && method === "POST") {
 				const renameHandler = createAccountRenameHandler(this.context.dbOps);
-				return await this.wrapHandler((req) => renameHandler(req, accountId))(
-					req,
-					url,
-				);
+				return await this.wrapHandler(
+					requireAuth((req) => renameHandler(req, accountId)),
+				)(req, url);
 			}
 
 			// Account removal
 			if (parts.length === 4 && method === "DELETE") {
 				const removeHandler = createAccountRemoveHandler(this.context.dbOps);
-				return await this.wrapHandler((req) => removeHandler(req, accountId))(
-					req,
-					url,
-				);
+				return await this.wrapHandler(
+					requireAuth((req) => removeHandler(req, accountId)),
+				)(req, url);
 			}
 		}
 
@@ -226,19 +293,17 @@ export class APIRouter {
 				const preferenceHandler = createAgentPreferenceUpdateHandler(
 					this.context.dbOps,
 				);
-				return await this.wrapHandler((req) => preferenceHandler(req, agentId))(
-					req,
-					url,
-				);
+				return await this.wrapHandler(
+					requireAuth((req) => preferenceHandler(req, agentId)),
+				)(req, url);
 			}
 
 			// Agent update (PATCH /api/agents/:id)
 			if (parts.length === 4 && method === "PATCH") {
 				const updateHandler = createAgentUpdateHandler(this.context.dbOps);
-				return await this.wrapHandler((req) => updateHandler(req, agentId))(
-					req,
-					url,
-				);
+				return await this.wrapHandler(
+					requireAuth((req) => updateHandler(req, agentId)),
+				)(req, url);
 			}
 		}
 

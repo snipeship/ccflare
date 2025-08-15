@@ -10,8 +10,10 @@ export class AccountRepository extends BaseRepository<Account> {
 				rate_limited_until, session_start, session_request_count,
 				COALESCE(account_tier, 1) as account_tier,
 				COALESCE(paused, 0) as paused,
-				rate_limit_reset, rate_limit_status, rate_limit_remaining
+				rate_limit_reset, rate_limit_status, rate_limit_remaining,
+				COALESCE(priority, 0) as priority
 			FROM accounts
+			ORDER BY priority ASC, created_at ASC
 		`);
 		return rows.map(toAccount);
 	}
@@ -25,7 +27,8 @@ export class AccountRepository extends BaseRepository<Account> {
 				rate_limited_until, session_start, session_request_count,
 				COALESCE(account_tier, 1) as account_tier,
 				COALESCE(paused, 0) as paused,
-				rate_limit_reset, rate_limit_status, rate_limit_remaining
+				rate_limit_reset, rate_limit_status, rate_limit_remaining,
+				COALESCE(priority, 0) as priority
 			FROM accounts
 			WHERE id = ?
 		`,
@@ -127,5 +130,26 @@ export class AccountRepository extends BaseRepository<Account> {
 
 	rename(accountId: string, newName: string): void {
 		this.run(`UPDATE accounts SET name = ? WHERE id = ?`, [newName, accountId]);
+	}
+
+	updatePriority(accountId: string, priority: number): void {
+		this.run(`UPDATE accounts SET priority = ? WHERE id = ?`, [
+			priority,
+			accountId,
+		]);
+	}
+
+	updateAccountsPriorities(
+		accountPriorities: Array<{ id: string; priority: number }>,
+	): void {
+		const transaction = this.db.transaction(() => {
+			for (const { id, priority } of accountPriorities) {
+				this.run(`UPDATE accounts SET priority = ? WHERE id = ?`, [
+					priority,
+					id,
+				]);
+			}
+		});
+		transaction();
 	}
 }

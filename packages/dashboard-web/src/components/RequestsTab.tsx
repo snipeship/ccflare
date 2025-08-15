@@ -726,6 +726,7 @@ export function RequestsTab() {
 													<span>Retry {request.meta.retry}</span>
 												)}
 											<span>ID: {request.id.slice(0, 8)}...</span>
+											{summary?.clientIp && <span>IP: {summary.clientIp}</span>}
 										</div>
 									</button>
 

@@ -5,6 +5,7 @@ import {
 	FileText,
 	GitBranch,
 	LayoutDashboard,
+	LogOut,
 	Menu,
 	Shield,
 	Users,
@@ -12,6 +13,7 @@ import {
 	Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "../contexts/auth-context";
 import { cn } from "../lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
@@ -40,6 +42,7 @@ interface NavigationProps {
 
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const { logout } = useAuth();
 
 	return (
 		<>
@@ -146,6 +149,15 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
 								All systems operational
 							</p>
 						</div>
+
+						<Button
+							variant="ghost"
+							className="w-full justify-start gap-3"
+							onClick={logout}
+						>
+							<LogOut className="h-4 w-4" />
+							Logout
+						</Button>
 
 						<div className="hidden lg:flex items-center justify-between">
 							<div className="flex items-center gap-2 text-xs text-muted-foreground">

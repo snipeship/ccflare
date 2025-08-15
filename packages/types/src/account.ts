@@ -22,6 +22,7 @@ export interface AccountRow {
 	rate_limit_reset?: number | null;
 	rate_limit_status?: string | null;
 	rate_limit_remaining?: number | null;
+	priority?: number;
 }
 
 // Domain model - used throughout the application
@@ -45,6 +46,7 @@ export interface Account {
 	rate_limit_reset: number | null;
 	rate_limit_status: string | null;
 	rate_limit_remaining: number | null;
+	priority: number; // Lower values = higher priority (0 is highest)
 }
 
 // API response type - what clients receive
@@ -64,6 +66,7 @@ export interface AccountResponse {
 	rateLimitReset: string | null;
 	rateLimitRemaining: number | null;
 	sessionInfo: string;
+	priority: number;
 }
 
 // UI display type - used in TUI and web dashboard
@@ -86,6 +89,7 @@ export interface AccountDisplay {
 	session_start?: number | null;
 	session_request_count?: number;
 	access_token?: string | null;
+	priority: number;
 }
 
 // CLI list item type
@@ -104,6 +108,7 @@ export interface AccountListItem {
 	rateLimitStatus: string;
 	sessionInfo: string;
 	mode: "max" | "console";
+	priority: number;
 }
 
 // Account creation types
@@ -139,6 +144,7 @@ export function toAccount(row: AccountRow): Account {
 		rate_limit_reset: row.rate_limit_reset || null,
 		rate_limit_status: row.rate_limit_status || null,
 		rate_limit_remaining: row.rate_limit_remaining || null,
+		priority: row.priority || 0,
 	};
 }
 
@@ -177,6 +183,7 @@ export function toAccountResponse(account: Account): AccountResponse {
 			: null,
 		rateLimitRemaining: account.rate_limit_remaining,
 		sessionInfo,
+		priority: account.priority,
 	};
 }
 
@@ -212,5 +219,6 @@ export function toAccountDisplay(account: Account): AccountDisplay {
 		session_start: account.session_start,
 		session_request_count: account.session_request_count,
 		access_token: account.access_token,
+		priority: account.priority,
 	};
 }

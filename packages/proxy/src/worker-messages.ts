@@ -26,6 +26,9 @@ export interface StartMessage {
 	// Agent info
 	agentUsed: string | null;
 
+	// Client IP
+	clientIp: string | null;
+
 	// Retry info
 	retryAttempt: number;
 	failoverAttempts: number;

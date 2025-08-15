@@ -48,6 +48,7 @@ export function createAccountsListHandler(db: Database) {
 					session_request_count,
 					COALESCE(account_tier, 1) as account_tier,
 					COALESCE(paused, 0) as paused,
+					COALESCE(priority, 0) as priority,
 					CASE 
 						WHEN expires_at > ?1 THEN 1 
 						ELSE 0 
@@ -62,7 +63,7 @@ export function createAccountsListHandler(db: Database) {
 						ELSE '-'
 					END as session_info
 				FROM accounts
-				ORDER BY request_count DESC
+				ORDER BY priority ASC, request_count DESC
 			`,
 			)
 			.all(now, now, now, sessionDuration) as Array<{
@@ -82,6 +83,7 @@ export function createAccountsListHandler(db: Database) {
 			session_request_count: number;
 			account_tier: number;
 			paused: 0 | 1;
+			priority: number;
 			token_valid: 0 | 1;
 			rate_limited: 0 | 1;
 			session_info: string | null;
@@ -133,6 +135,7 @@ export function createAccountsListHandler(db: Database) {
 					: null,
 				rateLimitRemaining: account.rate_limit_remaining,
 				sessionInfo: account.session_info || "",
+				priority: account.priority,
 			};
 		});
 
@@ -430,6 +433,61 @@ export function createAccountRenameHandler(dbOps: DatabaseOperations) {
 			log.error("Account rename error:", error);
 			return errorResponse(
 				error instanceof Error ? error : new Error("Failed to rename account"),
+			);
+		}
+	};
+}
+
+/**
+ * Create an accounts priority update handler
+ */
+export function createAccountsPriorityUpdateHandler(dbOps: DatabaseOperations) {
+	return async (req: Request): Promise<Response> => {
+		try {
+			const body = await req.json();
+
+			// Validate the request body
+			if (!Array.isArray(body.accountPriorities)) {
+				return errorResponse(BadRequest("accountPriorities must be an array"));
+			}
+
+			const accountPriorities = body.accountPriorities as Array<{
+				id: string;
+				priority: number;
+			}>;
+
+			// Validate each account priority entry
+			for (const entry of accountPriorities) {
+				const accountId = validateString(entry.id, "id", {
+					required: true,
+					minLength: 1,
+				});
+
+				const priority = validateNumber(entry.priority, "priority", {
+					required: true,
+					min: 0,
+				});
+
+				if (!accountId || priority === undefined) {
+					return errorResponse(
+						BadRequest("Each entry must have a valid id and priority"),
+					);
+				}
+			}
+
+			// Update priorities using database operations method
+			dbOps.updateAccountsPriorities(accountPriorities);
+
+			return jsonResponse({
+				success: true,
+				message: "Account priorities updated successfully",
+			});
+		} catch (error) {
+			log.error("Account priorities update error:", error);
+			return errorResponse(
+				error instanceof Error
+					? error
+					: new Error("Failed to update account priorities"),
 			);
 		}
 	};

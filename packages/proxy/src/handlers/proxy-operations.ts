@@ -59,6 +59,7 @@ export async function proxyUnauthenticated(
 				retryAttempt: 0,
 				failoverAttempts: 0,
 				agentUsed: requestMeta.agentUsed,
+				clientIp: requestMeta.clientIp,
 			},
 			ctx,
 		);
@@ -140,6 +141,7 @@ export async function proxyWithAccount(
 				retryAttempt: 0,
 				failoverAttempts,
 				agentUsed: requestMeta.agentUsed,
+				clientIp: requestMeta.clientIp,
 			},
 			ctx,
 		);

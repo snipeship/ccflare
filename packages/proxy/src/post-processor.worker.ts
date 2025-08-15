@@ -425,6 +425,7 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 					}
 				: undefined,
 			state.agentUsed,
+			startMessage.clientIp || undefined,
 		),
 	);
 
@@ -496,6 +497,7 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 		costUsd: state.usage.costUsd,
 		agentUsed: state.agentUsed,
 		tokensPerSecond: state.usage.tokensPerSecond,
+		clientIp: startMessage.clientIp || undefined,
 	};
 
 	self.postMessage({

@@ -25,7 +25,7 @@ open http://localhost:8080/dashboard
 
 ## Overview
 
-ccflare provides a RESTful HTTP API for managing accounts, monitoring usage, and proxying requests to Claude. The API runs on port 8080 by default and requires no authentication.
+ccflare provides a RESTful HTTP API for managing accounts, monitoring usage, and proxying requests to Claude. The API runs on port 8080 by default. Dashboard access requires authentication while API endpoints remain open for compatibility.
 
 ### Base URL
 
@@ -804,6 +804,16 @@ The dashboard provides a visual interface for:
 - Managing configuration
 - Examining request history
 
+### Dashboard Authentication
+
+The dashboard requires authentication to access. Default credentials:
+- **Username**: `ccflare_user`
+- **Password**: `ccflare_password`
+
+Authentication is handled via a database-backed user system. The default user is created automatically on first run.
+
+**Note**: The previous environment variables `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` are now deprecated and no longer used.
+
 ---
 
 ## Configuration
@@ -851,9 +861,62 @@ The following strategy is available:
 
 **⚠️ WARNING:** Only use the session strategy. Other strategies can trigger Claude's anti-abuse systems and result in account bans.
 
+## Authentication
+
+### API Endpoints
+
+API endpoints (`/api/*`) do not require authentication for backward compatibility. They are designed for programmatic access and internal use.
+
+### Dashboard Authentication
+
+The web dashboard (`/dashboard`) does not require authentication, unless enabled with an environment variable `AUTH_ENABLED=(boolean)`. If enabled, default credentials are `ccflare_user` for the username, and `ccflare_password` for the password.
+
+#### POST /api/auth/login
+
+Login to the dashboard.
+
+**Request:**
+```json
+{
+  "username": "ccflare_user",
+  "password": "ccflare_password"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true
+}
+```
+
+Sets an HTTP-only session cookie for authentication.
+
+#### POST /api/auth/logout
+
+Logout from the dashboard.
+
+**Response:**
+```json
+{
+  "success": true
+}
+```
+
+#### GET /api/auth/check
+
+Check authentication status.
+
+**Response:**
+```json
+{
+  "authenticated": true
+}
+```
+
 ## Notes
 
-1. **No Authentication**: The API endpoints do not require authentication. ccflare manages the OAuth tokens internally for proxying to Claude.
+1. **API Authentication**: The API endpoints do not require authentication. ccflare manages the OAuth tokens internally for proxying to Claude.
 
 2. **Automatic Failover**: When a request fails or an account is rate limited, ccflare automatically tries the next available account. If no accounts are available, requests are forwarded without authentication as a fallback.
 

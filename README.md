@@ -20,6 +20,23 @@ https://github.com/user-attachments/assets/c859872f-ca5e-4f8b-b6a0-7cc7461fe62a
 
 ## Quick Start
 
+### With Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/snipeship/ccflare
+cd ccflare
+
+# Build and run with Docker
+docker build -t ccflare .
+docker run -p 8080:8080 ccflare
+
+# Configure Claude SDK
+export ANTHROPIC_BASE_URL=http://localhost:8080
+```
+
+### With Bun
+
 ```bash
 # Clone and install
 git clone https://github.com/snipeship/ccflare
@@ -36,7 +53,8 @@ export ANTHROPIC_BASE_URL=http://localhost:8080
 ## Features
 
 ### 🎯 Intelligent Load Balancing
-- **Session-based** - Maintain conversation context (5hr sessions)
+- **Strategies Supported**:
+  - **session** – Maintain session stickiness for up to 5 hours per account.
 
 ### 📈 Real-Time Analytics
 - Token usage tracking per request
@@ -55,6 +73,8 @@ export ANTHROPIC_BASE_URL=http://localhost:8080
 - OAuth token refresh handling
 - SQLite database for persistence
 - Configurable retry logic
+- Authentication (default credentials are ccflare_user : ccflare_password)
+- Docker deployment
 
 ## Documentation
 

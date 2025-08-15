@@ -263,13 +263,15 @@ export function AccountsScreen({ onBack }: AccountsScreenProps) {
 	}
 
 	const menuItems = [
-		...accounts.map((acc) => {
-			const presenter = new AccountPresenter(acc);
-			return {
-				label: `${acc.name} (${presenter.tierDisplay})`,
-				value: `account:${acc.name}`,
-			};
-		}),
+		...accounts
+			.sort((a, b) => (a.priority || 0) - (b.priority || 0))
+			.map((acc, index) => {
+				const presenter = new AccountPresenter(acc);
+				return {
+					label: `#${index + 1} ${acc.name} (${presenter.tierDisplay})`,
+					value: `account:${acc.name}`,
+				};
+			}),
 		{ label: "➕ Add Account", value: "add" },
 		{ label: "← Back", value: "back" },
 	];

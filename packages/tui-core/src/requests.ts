@@ -13,6 +13,7 @@ export interface RequestSummary {
 	cacheCreationInputTokens?: number;
 	costUsd?: number;
 	responseTimeMs?: number;
+	clientIp?: string;
 }
 
 export async function getRequests(limit = 100): Promise<RequestPayload[]> {
@@ -61,7 +62,8 @@ export async function getRequestSummaries(
 			cache_read_input_tokens as cacheReadInputTokens,
 			cache_creation_input_tokens as cacheCreationInputTokens,
 			cost_usd as costUsd,
-			response_time_ms as responseTimeMs
+			response_time_ms as responseTimeMs,
+			client_ip as clientIp
 		FROM requests
 		ORDER BY timestamp DESC
 		LIMIT ?
@@ -76,6 +78,7 @@ export async function getRequestSummaries(
 		cacheCreationInputTokens?: number;
 		costUsd?: number;
 		responseTimeMs?: number;
+		clientIp?: string;
 	}>;
 
 	const summaryMap = new Map<string, RequestSummary>();
@@ -90,6 +93,7 @@ export async function getRequestSummaries(
 			cacheCreationInputTokens: summary.cacheCreationInputTokens || undefined,
 			costUsd: summary.costUsd || undefined,
 			responseTimeMs: summary.responseTimeMs || undefined,
+			clientIp: summary.clientIp || undefined,
 		});
 	});
 

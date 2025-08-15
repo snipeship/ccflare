@@ -46,6 +46,14 @@ class API extends HttpClient {
 		});
 	}
 
+	// Override request to include credentials
+	async request<T = unknown>(url: string, options?: RequestInit): Promise<T> {
+		return super.request<T>(url, {
+			...options,
+			credentials: "include",
+		});
+	}
+
 	async getStats(): Promise<Stats> {
 		return this.get<Stats>("/api/stats");
 	}
@@ -290,6 +298,19 @@ class API extends HttpClient {
 				model: string;
 			}>("/api/agents/bulk-preference", { model });
 			return { updatedCount: response.updatedCount };
+		} catch (error) {
+			if (error instanceof HttpError) {
+				throw new Error(error.message);
+			}
+			throw error;
+		}
+	}
+
+	async updateAccountsPriorities(
+		accountPriorities: Array<{ id: string; priority: number }>,
+	): Promise<void> {
+		try {
+			await this.post("/api/accounts/priorities", { accountPriorities });
 		} catch (error) {
 			if (error instanceof HttpError) {
 				throw new Error(error.message);

@@ -138,6 +138,7 @@ export function getAccountsList(dbOps: DatabaseOperations): AccountListItem[] {
 			sessionInfo,
 			tier: account.account_tier || 1,
 			mode: account.account_tier > 1 ? "max" : "console",
+			priority: account.priority,
 		};
 	});
 }

@@ -189,12 +189,12 @@ class PriceCatalogue {
 			return this.priceData;
 		}
 
-		// Always attempt to fetch fresh pricing first (once per process start)
-		let data = await this.fetchRemote();
+		// Try loading from disk cache
+		let data = await this.loadFromCache();
 
-		// If remote fetch failed (offline or error), fall back to disk cache
+		// If no cache, fetch remote
 		if (!data) {
-			data = await this.loadFromCache();
+			data = await this.fetchRemote();
 		}
 
 		// Fall back to bundled pricing

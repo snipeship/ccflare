@@ -1,6 +1,7 @@
 node_modules/
 .env
 .env.local
+.gitattributes
 ccflare.db
 ccflare.db-wal
 ccflare.db-shm

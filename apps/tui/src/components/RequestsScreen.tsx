@@ -139,6 +139,10 @@ export function RequestsScreen({ onBack }: RequestsScreenProps) {
 						<Text>Account: {selectedRequest.meta.accountName}</Text>
 					)}
 
+					{selectedSummary?.clientIp && (
+						<Text>Client IP: {selectedSummary.clientIp}</Text>
+					)}
+
 					{selectedSummary?.model && (
 						<Text>
 							Model: <Text color="green">{selectedSummary.model}</Text>

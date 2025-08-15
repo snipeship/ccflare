@@ -21,6 +21,7 @@ export interface RequestRow {
 	output_tokens: number | null;
 	agent_used: string | null;
 	output_tokens_per_second: number | null;
+	client_ip: string | null;
 }
 
 // Domain model
@@ -46,6 +47,7 @@ export interface Request {
 	outputTokens?: number;
 	agentUsed?: string;
 	tokensPerSecond?: number;
+	clientIp?: string;
 }
 
 // API response type
@@ -71,6 +73,7 @@ export interface RequestResponse {
 	costUsd?: number;
 	agentUsed?: string;
 	tokensPerSecond?: number;
+	clientIp?: string;
 }
 
 // Detailed request with payload
@@ -125,6 +128,7 @@ export function toRequest(row: RequestRow): Request {
 		outputTokens: row.output_tokens || undefined,
 		agentUsed: row.agent_used || undefined,
 		tokensPerSecond: row.output_tokens_per_second || undefined,
+		clientIp: row.client_ip || undefined,
 	};
 }
 
@@ -151,6 +155,7 @@ export function toRequestResponse(request: Request): RequestResponse {
 		costUsd: request.costUsd,
 		agentUsed: request.agentUsed,
 		tokensPerSecond: request.tokensPerSecond,
+		clientIp: request.clientIp,
 	};
 }
 

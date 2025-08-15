@@ -90,6 +90,20 @@ export function ensureSchema(db: Database): void {
 			updated_at INTEGER NOT NULL
 		)
 	`);
+
+	// Create users table for dashboard authentication
+	db.run(`
+		CREATE TABLE IF NOT EXISTS users (
+			id TEXT PRIMARY KEY,
+			username TEXT UNIQUE NOT NULL,
+			password_hash TEXT NOT NULL,
+			created_at INTEGER NOT NULL,
+			last_login INTEGER
+		)
+	`);
+
+	// Create index for faster username lookups
+	db.run(`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`);
 }
 
 export function runMigrations(db: Database): void {
@@ -168,6 +182,14 @@ export function runMigrations(db: Database): void {
 			"ALTER TABLE accounts ADD COLUMN rate_limit_remaining INTEGER",
 		).run();
 		log.info("Added rate_limit_remaining column to accounts table");
+	}
+
+	// Add priority column if it doesn't exist
+	if (!accountsColumnNames.includes("priority")) {
+		db.prepare(
+			"ALTER TABLE accounts ADD COLUMN priority INTEGER DEFAULT 0",
+		).run();
+		log.info("Added priority column to accounts table");
 	}
 
 	// Check columns in requests table
@@ -265,6 +287,12 @@ export function runMigrations(db: Database): void {
 			"ALTER TABLE requests ADD COLUMN output_tokens_per_second REAL",
 		).run();
 		log.info("Added output_tokens_per_second column to requests table");
+	}
+
+	// Add client_ip column if it doesn't exist
+	if (!requestsColumnNames.includes("client_ip")) {
+		db.prepare("ALTER TABLE requests ADD COLUMN client_ip TEXT").run();
+		log.info("Added client_ip column to requests table");
 	}
 
 	// Add performance indexes

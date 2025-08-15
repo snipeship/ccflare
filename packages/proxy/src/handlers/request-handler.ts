@@ -5,6 +5,45 @@ import type { RequestMeta } from "@ccflare/types";
 import { ERROR_MESSAGES } from "./proxy-types";
 
 /**
+ * Extract client IP from request headers
+ * @param req - The incoming request
+ * @returns Client IP address or null if not available
+ */
+function getClientIp(req: Request): string | null {
+	// Check common headers for real client IP (in order of preference)
+	const headers = req.headers;
+
+	// Check X-Forwarded-For (most common)
+	const xForwardedFor = headers.get("x-forwarded-for");
+	if (xForwardedFor) {
+		// X-Forwarded-For can contain multiple IPs, get the first one (original client)
+		return xForwardedFor.split(",")[0].trim();
+	}
+
+	// Check CF-Connecting-IP (Cloudflare)
+	const cfConnectingIp = headers.get("cf-connecting-ip");
+	if (cfConnectingIp) {
+		return cfConnectingIp;
+	}
+
+	// Check X-Real-IP (nginx)
+	const xRealIp = headers.get("x-real-ip");
+	if (xRealIp) {
+		return xRealIp;
+	}
+
+	// Check X-Client-IP
+	const xClientIp = headers.get("x-client-ip");
+	if (xClientIp) {
+		return xClientIp;
+	}
+
+	// If no proxy headers, we can't determine the real IP from a Request object
+	// The actual socket IP would need to be passed from the server
+	return null;
+}
+
+/**
  * Creates request metadata for tracking and analytics
  * @param req - The incoming request
  * @param url - The parsed URL
@@ -16,6 +55,7 @@ export function createRequestMetadata(req: Request, url: URL): RequestMeta {
 		method: req.method,
 		path: url.pathname,
 		timestamp: Date.now(),
+		clientIp: getClientIp(req),
 	};
 }
 

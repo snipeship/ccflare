@@ -134,6 +134,21 @@ export function AccountsTab() {
 		}
 	};
 
+	const handleReorderAccounts = async (reorderedAccounts: Account[]) => {
+		try {
+			const accountPriorities = reorderedAccounts.map((account, index) => ({
+				id: account.id,
+				priority: index,
+			}));
+
+			await api.updateAccountsPriorities(accountPriorities);
+			await loadAccounts();
+			setActionError(null);
+		} catch (err) {
+			setActionError(formatError(err));
+		}
+	};
+
 	if (loading) {
 		return (
 			<Card>
@@ -195,6 +210,7 @@ export function AccountsTab() {
 						onPauseToggle={handlePauseToggle}
 						onRemove={handleRemoveAccount}
 						onRename={handleRename}
+						onReorder={handleReorderAccounts}
 					/>
 				</CardContent>
 			</Card>
