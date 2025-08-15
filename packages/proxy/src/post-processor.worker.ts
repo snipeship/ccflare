@@ -69,6 +69,10 @@ function shouldLogRequest(path: string, status: number): boolean {
 	if (path.startsWith("/.well-known/") && status === 404) {
 		return false;
 	}
+	// Skip logging internal API calls (dashboard, search, etc.)
+	if (path.startsWith("/api/")) {
+		return false;
+	}
 	return true;
 }
 

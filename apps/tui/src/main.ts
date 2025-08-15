@@ -2,7 +2,7 @@
 import { Config } from "@ccflare/config";
 import { CLAUDE_MODEL_IDS, NETWORK, shutdown } from "@ccflare/core";
 import { container, SERVICE_KEYS } from "@ccflare/core-di";
-import { DatabaseFactory } from "@ccflare/database";
+import { DatabaseFactory, type MigrationProgress } from "@ccflare/database";
 import { Logger } from "@ccflare/logger";
 // Import server
 import startServer from "@ccflare/server";
@@ -11,6 +11,7 @@ import { parseArgs } from "@ccflare/tui-core";
 import { render } from "ink";
 import React from "react";
 import { App } from "./App";
+import { MigrationProgressComponent } from "./components/MigrationProgress";
 
 // Global singleton for auto-started server
 let runningServer: ReturnType<typeof startServer> | null = null;
@@ -27,10 +28,31 @@ async function main() {
 	container.registerInstance(SERVICE_KEYS.Config, new Config());
 	container.registerInstance(SERVICE_KEYS.Logger, new Logger("TUI"));
 
-	// Initialize database factory
-	DatabaseFactory.initialize();
+	// Track migration progress
+	let migrationProgress: MigrationProgress | null = null;
+	let migrationComplete = false;
+
+	// Initialize database factory with progress callback
+	DatabaseFactory.initialize(undefined, undefined, (progress) => {
+		migrationProgress = progress;
+		if (progress.percentage === 100) {
+			migrationComplete = true;
+		}
+	});
+
+	// Show migration progress if needed
 	const dbOps = DatabaseFactory.getInstance();
 	container.registerInstance(SERVICE_KEYS.Database, dbOps);
+
+	// If migration is in progress, show progress UI first
+	if (migrationProgress && !migrationComplete) {
+		const { waitUntilExit } = render(
+			React.createElement(MigrationProgressComponent, {
+				progress: migrationProgress,
+			}),
+		);
+		await waitUntilExit();
+	}
 
 	const args = process.argv.slice(2);
 	const parsed = parseArgs(args);

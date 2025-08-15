@@ -13,13 +13,16 @@ import {
 	Eye,
 	Filter,
 	Hash,
+	Loader2,
 	RefreshCw,
+	Search,
 	User,
 	X,
 } from "lucide-react";
 import { useState } from "react";
-import type { RequestPayload, RequestSummary } from "../api";
+import type { RequestPayload, RequestSummary, SearchResult } from "../api";
 import { useRequests } from "../hooks/queries";
+import { useDebounceSearch } from "../hooks/useDebounceSearch";
 import { useRequestStream } from "../hooks/useRequestStream";
 import { CopyButton } from "./CopyButton";
 import { RequestDetailsModal } from "./RequestDetailsModal";
@@ -61,6 +64,8 @@ export function RequestsTab() {
 	const [statusCodeFilters, setStatusCodeFilters] = useState<Set<string>>(
 		new Set(),
 	);
+	const [searchQuery, setSearchQuery] = useState<string>("");
+	const [_isSearchMode, setIsSearchMode] = useState(false);
 
 	const {
 		data: requestsData,
@@ -71,6 +76,24 @@ export function RequestsTab() {
 
 	// Enable real-time updates
 	useRequestStream(200);
+
+	// Search functionality
+	const {
+		data: searchData,
+		isLoading: isSearchLoading,
+		isSearching,
+		hasSearched,
+	} = useDebounceSearch(searchQuery, {
+		accountId: accountFilter !== "all" ? accountFilter : undefined,
+		method: agentFilter !== "all" ? agentFilter : undefined,
+		statusCode:
+			statusCodeFilters.size === 1
+				? Number.parseInt(Array.from(statusCodeFilters)[0])
+				: undefined,
+		dateFrom: dateFrom ? new Date(dateFrom).toISOString() : undefined,
+		dateTo: dateTo ? new Date(dateTo).toISOString() : undefined,
+		limit: 100,
+	});
 
 	// Transform the data to match the expected structure
 	const data = requestsData
@@ -233,6 +256,13 @@ export function RequestsTab() {
 		setDateFrom("");
 		setDateTo("");
 		setStatusCodeFilters(new Set());
+		setSearchQuery("");
+		setIsSearchMode(false);
+	};
+
+	const clearSearch = () => {
+		setSearchQuery("");
+		setIsSearchMode(false);
 	};
 
 	const hasActiveFilters =
@@ -241,6 +271,14 @@ export function RequestsTab() {
 		dateFrom ||
 		dateTo ||
 		statusCodeFilters.size > 0;
+
+	const hasActiveSearch = searchQuery.trim().length > 0;
+
+	// Determine what to display
+	const shouldShowSearch = hasActiveSearch && hasSearched;
+	const searchResults = searchData?.results || [];
+	const _displayData = shouldShowSearch ? null : data; // Use null when in search mode
+	const displayRequests = shouldShowSearch ? [] : filteredRequests; // Empty when in search mode
 
 	const decodeBase64 = (str: string | null): string => {
 		if (!str) return "No data";
@@ -261,6 +299,164 @@ export function RequestsTab() {
 	 * any base64-encoded bodies already decoded for easier debugging.
 	 */
 	// copyRequest helper removed – handled inline by CopyButton
+
+	// Search Result Card Component
+	interface SearchResultCardProps {
+		result: SearchResult;
+		onClick: () => void;
+	}
+
+	const SearchResultCard = ({ result, onClick }: SearchResultCardProps) => {
+		const getStatusCodeColor = (code: number) => {
+			if (code >= 200 && code < 300) return "text-green-600";
+			if (code >= 400 && code < 500) return "text-yellow-600";
+			if (code >= 500) return "text-red-600";
+			return "text-gray-600";
+		};
+
+		// Safe highlighting that only handles <mark> tags
+		const renderHighlightedText = (text: string) => {
+			// Only allow <mark> and </mark> tags for highlighting
+			const parts = text.split(/(<\/?mark>)/);
+			return parts
+				.map((part, index) => {
+					if (part === "<mark>") {
+						return null; // Skip opening tag
+					}
+					if (part === "</mark>") {
+						return null; // Skip closing tag
+					}
+					// Check if this part should be highlighted (between mark tags)
+					const isHighlighted = index > 0 && parts[index - 1] === "<mark>";
+					if (isHighlighted) {
+						return (
+							<mark
+								key={`highlight-${text.slice(0, 10)}-${index}`}
+								className="bg-yellow-200 dark:bg-yellow-800"
+							>
+								{part}
+							</mark>
+						);
+					}
+					return part;
+				})
+				.filter(Boolean);
+		};
+
+		return (
+			<button
+				type="button"
+				className="border rounded-lg p-4 transition-all duration-300 hover:bg-muted/30 cursor-pointer w-full text-left"
+				onClick={onClick}
+			>
+				<div className="flex items-center justify-between mb-3">
+					<div className="flex items-center gap-2 flex-wrap">
+						<span className="text-sm font-mono">
+							{new Date(result.timestamp).toLocaleTimeString()}
+						</span>
+						<span className="text-sm font-medium">{result.method}</span>
+						<span className="text-sm text-muted-foreground font-mono">
+							{result.path}
+						</span>
+						{result.statusCode && (
+							<span
+								className={`text-sm font-medium ${getStatusCodeColor(result.statusCode)}`}
+							>
+								{result.statusCode}
+							</span>
+						)}
+						{result.model && (
+							<Badge variant="secondary" className="text-xs">
+								{result.model}
+							</Badge>
+						)}
+						{result.agentUsed && (
+							<Badge variant="secondary" className="text-xs">
+								Agent: {result.agentUsed}
+							</Badge>
+						)}
+						{result.accountName && (
+							<span className="text-sm text-muted-foreground">
+								via {result.accountName}
+							</span>
+						)}
+					</div>
+					<div className="text-sm text-muted-foreground">
+						<span>{result.responseTime}ms</span>
+						<span className="ml-2">ID: {result.id.slice(0, 8)}...</span>
+					</div>
+				</div>
+
+				{/* Search snippets */}
+				<div className="space-y-2 text-sm">
+					{/* Request snippets */}
+					{result.requestSnippets && result.requestSnippets.length > 0 ? (
+						<div>
+							<span className="font-medium text-muted-foreground">
+								Request matches ({result.requestSnippets.length}):{" "}
+							</span>
+							<div className="space-y-1 mt-1">
+								{result.requestSnippets.map((snippet: string, idx: number) => (
+									<div
+										key={`req-${result.id}-${idx}`}
+										className="bg-muted/50 p-2 rounded text-xs font-mono"
+									>
+										{renderHighlightedText(snippet)}
+									</div>
+								))}
+							</div>
+						</div>
+					) : result.requestSnippet && result.requestSnippet.trim() !== "" ? (
+						// Fallback for backward compatibility
+						<div>
+							<span className="font-medium text-muted-foreground">
+								Request:{" "}
+							</span>
+							<div className="bg-muted/50 p-2 rounded text-xs font-mono mt-1">
+								{renderHighlightedText(result.requestSnippet)}
+							</div>
+						</div>
+					) : null}
+
+					{/* Response snippets */}
+					{result.responseSnippets && result.responseSnippets.length > 0 ? (
+						<div>
+							<span className="font-medium text-muted-foreground">
+								Response matches ({result.responseSnippets.length}):{" "}
+							</span>
+							<div className="space-y-1 mt-1">
+								{result.responseSnippets.map((snippet: string, idx: number) => (
+									<div
+										key={`res-${result.id}-${idx}`}
+										className="bg-muted/50 p-2 rounded text-xs font-mono"
+									>
+										{renderHighlightedText(snippet)}
+									</div>
+								))}
+							</div>
+						</div>
+					) : result.responseSnippet && result.responseSnippet.trim() !== "" ? (
+						// Fallback for backward compatibility
+						<div>
+							<span className="font-medium text-muted-foreground">
+								Response:{" "}
+							</span>
+							<div className="bg-muted/50 p-2 rounded text-xs font-mono mt-1">
+								{renderHighlightedText(result.responseSnippet)}
+							</div>
+						</div>
+					) : null}
+				</div>
+
+				<div className="flex justify-end mt-3">
+					<Button variant="ghost" size="sm" className="text-xs">
+						<Eye className="h-3 w-3 mr-1" />
+						View Details
+					</Button>
+				</div>
+			</button>
+		);
+	};
 
 	if (loading) {
 		return (
@@ -323,6 +519,35 @@ export function RequestsTab() {
 				</div>
 			</CardHeader>
 			<CardContent>
+				{/* Search Input */}
+				<div className="mb-4">
+					<div className="relative">
+						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+						<Input
+							type="text"
+							placeholder="Search requests and responses..."
+							value={searchQuery}
+							onChange={(e) => {
+								setSearchQuery(e.target.value);
+								setIsSearchMode(e.target.value.trim().length > 0);
+							}}
+							className="pl-10 pr-10"
+						/>
+						{isSearching && (
+							<Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+						)}
+						{hasActiveSearch && !isSearching && (
+							<button
+								type="button"
+								onClick={clearSearch}
+								className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						)}
+					</div>
+				</div>
+
 				{/* Active Filters Display */}
 				{hasActiveFilters && (
 					<div className="mb-4 p-3 bg-muted/50 rounded-lg">
@@ -386,10 +611,24 @@ export function RequestsTab() {
 									</button>
 								</Badge>
 							)}
+							{hasActiveSearch && (
+								<Badge variant="outline" className="gap-1.5 pr-1">
+									<Search className="h-3 w-3" />"{searchQuery.substring(0, 20)}
+									{searchQuery.length > 20 ? "..." : ""}"
+									<button
+										type="button"
+										onClick={clearSearch}
+										className="ml-1 p-0.5 hover:bg-destructive/20 rounded"
+									>
+										<X className="h-3 w-3" />
+									</button>
+								</Badge>
+							)}
 							<div className="ml-auto flex items-center gap-2">
 								<span className="text-xs text-muted-foreground">
-									{filteredRequests.length} of {data?.requests.length || 0}{" "}
-									requests
+									{shouldShowSearch
+										? `${searchResults.length} search results`
+										: `${filteredRequests.length} of ${data?.requests.length || 0} requests`}
 								</span>
 								<Button
 									variant="ghost"
@@ -606,15 +845,50 @@ export function RequestsTab() {
 					</div>
 				)}
 
-				{!data ? (
+				{/* Search Results or Regular Results */}
+				{shouldShowSearch ? (
+					/* Search Results View */
+					searchResults.length === 0 ? (
+						<div className="text-center py-8">
+							<Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+							<p className="text-muted-foreground mb-2">
+								{isSearchLoading ? "Searching..." : "No results found"}
+							</p>
+							{!isSearchLoading && (
+								<p className="text-sm text-muted-foreground">
+									Try adjusting your search terms or filters
+								</p>
+							)}
+						</div>
+					) : (
+						<div className="space-y-2">
+							{searchResults.map((result) => (
+								<SearchResultCard
+									key={result.id}
+									result={result}
+									onClick={() => {
+										// Find the full request payload to show in modal
+										const fullRequest = data?.requests.find(
+											(r) => r.id === result.id,
+										);
+										if (fullRequest) {
+											setModalRequest(fullRequest);
+										}
+									}}
+								/>
+							))}
+						</div>
+					)
+				) : /* Regular Results View */
+				!data ? (
 					<p className="text-muted-foreground">No requests found</p>
-				) : filteredRequests.length === 0 ? (
+				) : displayRequests.length === 0 ? (
 					<p className="text-muted-foreground">
 						No requests match the selected filters
 					</p>
 				) : (
 					<div className="space-y-2">
-						{filteredRequests.map((request) => {
+						{displayRequests.map((request) => {
 							const isExpanded = expandedRequests.has(request.id);
 							const isError = request.error || !request.meta.success;
 							const statusCode = request.response?.status;

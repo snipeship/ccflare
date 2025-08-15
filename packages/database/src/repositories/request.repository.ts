@@ -25,6 +25,39 @@ export interface RequestData {
 	};
 }
 
+export interface SearchFilters {
+	accountId?: string;
+	method?: string;
+	path?: string;
+	statusCode?: number;
+	success?: boolean;
+	dateFrom?: number;
+	dateTo?: number;
+	model?: string;
+	agentUsed?: string;
+	limit?: number;
+	offset?: number;
+}
+
+export interface SearchResult {
+	id: string;
+	timestamp: number;
+	method: string;
+	path: string;
+	accountUsed: string | null;
+	accountName: string | null;
+	statusCode: number | null;
+	success: boolean;
+	responseTime: number;
+	model: string | null;
+	agentUsed: string | null;
+	requestSnippet?: string; // For backward compatibility
+	responseSnippet?: string; // For backward compatibility
+	requestSnippets?: string[]; // Multiple snippets
+	responseSnippets?: string[]; // Multiple snippets
+	rank: number;
+}
+
 export class RequestRepository extends BaseRepository<RequestData> {
 	saveMeta(
 		id: string,
@@ -127,6 +160,39 @@ export class RequestRepository extends BaseRepository<RequestData> {
 			`INSERT OR REPLACE INTO request_payloads (id, json) VALUES (?, ?)`,
 			[id, json],
 		);
+
+		// Also update FTS table with decoded content
+		try {
+			const payload = data as {
+				request?: { body?: string };
+				response?: { body?: string };
+			};
+			const requestBody = this.decodeBase64Content(payload.request?.body || "");
+			const responseBody = this.decodeBase64Content(
+				payload.response?.body || "",
+			);
+
+			// Check if FTS record exists
+			const exists = this.get<{ id: string }>(
+				`SELECT id FROM request_payloads_fts WHERE id = ?`,
+				[id],
+			);
+
+			if (exists) {
+				this.run(
+					`UPDATE request_payloads_fts SET request_body = ?, response_body = ? WHERE id = ?`,
+					[requestBody, responseBody, id],
+				);
+			} else {
+				this.run(
+					`INSERT INTO request_payloads_fts (id, request_body, response_body) VALUES (?, ?, ?)`,
+					[id, requestBody, responseBody],
+				);
+			}
+		} catch (error) {
+			// Log error but don't fail the main operation
+			console.error(`Failed to update FTS for ${id}:`, error);
+		}
 	}
 
 	getPayload(id: string): unknown | null {
@@ -377,5 +443,159 @@ export class RequestRepository extends BaseRepository<RequestData> {
 			requestCount: row.request_count,
 			successRate: row.success_rate,
 		}));
+	}
+
+	/**
+	 * Comprehensive search with filters and metadata
+	 */
+	getSearchResults(
+		query: string,
+		filters: SearchFilters = {},
+	): Array<SearchResult> {
+		const {
+			accountId,
+			method,
+			path,
+			statusCode,
+			success,
+			dateFrom,
+			dateTo,
+			model,
+			agentUsed,
+			limit = 50,
+			offset = 0,
+		} = filters;
+
+		// Build WHERE conditions
+		const conditions: string[] = ["request_payloads_fts MATCH ?"];
+		const params: (string | number)[] = [query];
+
+		if (accountId) {
+			conditions.push("r.account_used = ?");
+			params.push(accountId);
+		}
+
+		if (method) {
+			conditions.push("r.method = ?");
+			params.push(method);
+		}
+
+		if (path) {
+			conditions.push("r.path LIKE ?");
+			params.push(`%${path}%`);
+		}
+
+		if (statusCode !== undefined) {
+			conditions.push("r.status_code = ?");
+			params.push(statusCode);
+		}
+
+		if (success !== undefined) {
+			conditions.push("r.success = ?");
+			params.push(success ? 1 : 0);
+		}
+
+		if (dateFrom) {
+			conditions.push("r.timestamp >= ?");
+			params.push(dateFrom);
+		}
+
+		if (dateTo) {
+			conditions.push("r.timestamp <= ?");
+			params.push(dateTo);
+		}
+
+		if (model) {
+			conditions.push("r.model = ?");
+			params.push(model);
+		}
+
+		if (agentUsed) {
+			conditions.push("r.agent_used = ?");
+			params.push(agentUsed);
+		}
+
+		params.push(limit, offset);
+
+		const whereClause = conditions.join(" AND ");
+
+		const results = this.query<{
+			id: string;
+			timestamp: number;
+			method: string;
+			path: string;
+			account_used: string | null;
+			account_name: string | null;
+			status_code: number | null;
+			success: 0 | 1;
+			response_time_ms: number;
+			model: string | null;
+			agent_used: string | null;
+			rank: number;
+			request_snippet: string;
+			response_snippet: string;
+		}>(
+			`
+			SELECT 
+				r.id,
+				r.timestamp,
+				r.method,
+				r.path,
+				r.account_used,
+				a.name as account_name,
+				r.status_code,
+				r.success,
+				r.response_time_ms,
+				r.model,
+				r.agent_used,
+				fts.rank,
+				snippet(request_payloads_fts, 1, '<mark>', '</mark>', '...', 32) as request_snippet,
+				snippet(request_payloads_fts, 2, '<mark>', '</mark>', '...', 32) as response_snippet
+			FROM request_payloads_fts fts
+			JOIN requests r ON fts.id = r.id
+			LEFT JOIN accounts a ON r.account_used = a.id
+			WHERE ${whereClause}
+			ORDER BY r.timestamp DESC
+			LIMIT ? OFFSET ?
+		`,
+			params,
+		);
+
+		return results.map((row) => ({
+			id: row.id,
+			timestamp: row.timestamp,
+			method: row.method,
+			path: row.path,
+			accountUsed: row.account_used,
+			accountName: row.account_name,
+			statusCode: row.status_code,
+			success: row.success === 1,
+			responseTime: row.response_time_ms,
+			model: row.model,
+			agentUsed: row.agent_used,
+			rank: row.rank,
+			requestSnippet: row.request_snippet, // Already decoded by snippet()
+			responseSnippet: row.response_snippet, // Already decoded by snippet()
+		}));
+	}
+
+	/**
+	 * Helper method to decode base64 content safely
+	 */
+	private decodeBase64Content(content: string): string {
+		if (!content || content === "[streamed]" || content === "") {
+			return content;
+		}
+
+		try {
+			// Check if the content looks like base64 (and is long enough to be meaningful)
+			if (content.length > 10 && /^[A-Za-z0-9+/]+=*$/.test(content)) {
+				return Buffer.from(content, "base64").toString("utf-8");
+			}
+			return content;
+		} catch {
+			// If decoding fails, return original content
+			return content;
+		}
 	}
 }

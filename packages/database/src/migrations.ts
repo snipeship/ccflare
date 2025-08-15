@@ -4,6 +4,13 @@ import { addPerformanceIndexes } from "./performance-indexes";
 
 const log = new Logger("DatabaseMigrations");
 
+export interface MigrationProgress {
+	current: number;
+	total: number;
+	operation: string;
+	percentage: number;
+}
+
 export function ensureSchema(db: Database): void {
 	// Create accounts table
 	db.run(`
@@ -92,7 +99,10 @@ export function ensureSchema(db: Database): void {
 	`);
 }
 
-export function runMigrations(db: Database): void {
+export function runMigrations(
+	db: Database,
+	onProgress?: (progress: MigrationProgress) => void,
+): void {
 	// Ensure base schema exists first
 	ensureSchema(db);
 	// Check if columns exist before adding them
@@ -269,4 +279,131 @@ export function runMigrations(db: Database): void {
 
 	// Add performance indexes
 	addPerformanceIndexes(db);
+
+	// Add FTS5 table for full-text search
+	addFTSMigration(db, onProgress);
+}
+
+function addFTSMigration(
+	db: Database,
+	onProgress?: (progress: MigrationProgress) => void,
+): void {
+	// Check if FTS table already exists
+	const ftsExists = db
+		.prepare(
+			"SELECT name FROM sqlite_master WHERE type='table' AND name='request_payloads_fts'",
+		)
+		.get();
+
+	if (!ftsExists) {
+		log.info("Creating FTS5 table for full-text search...");
+
+		// Create the FTS5 virtual table
+		db.run(`
+			CREATE VIRTUAL TABLE request_payloads_fts USING fts5(
+				id UNINDEXED,
+				request_body,
+				response_body,
+				tokenize='porter unicode61'
+			)
+		`);
+
+		// Count total records to migrate
+		const totalResult = db
+			.prepare("SELECT COUNT(*) as count FROM request_payloads")
+			.get() as { count: number };
+		const totalRecords = totalResult.count;
+
+		if (totalRecords > 0) {
+			log.info(`Migrating ${totalRecords} records to FTS index...`);
+
+			// Report initial progress
+			if (onProgress && totalRecords > 100) {
+				onProgress({
+					current: 0,
+					total: totalRecords,
+					operation: "Indexing request/response data for search",
+					percentage: 0,
+				});
+			}
+
+			// Helper function to decode base64
+			const decodeBase64 = (str: string | null): string => {
+				if (!str || str === "[streamed]") return "";
+				try {
+					return Buffer.from(str, "base64").toString("utf-8");
+				} catch {
+					return str || "";
+				}
+			};
+
+			// Migrate existing data in batches
+			const batchSize = 100; // Smaller batch size for processing
+			let processed = 0;
+
+			// Prepare statements
+			const selectStmt = db.prepare(`
+				SELECT id, json
+				FROM request_payloads
+				LIMIT ?1 OFFSET ?2
+			`);
+
+			const insertStmt = db.prepare(`
+				INSERT INTO request_payloads_fts (id, request_body, response_body)
+				VALUES (?, ?, ?)
+			`);
+
+			// Process in batches
+			while (processed < totalRecords) {
+				const currentBatch = Math.min(batchSize, totalRecords - processed);
+				const rows = selectStmt.all(currentBatch, processed) as Array<{
+					id: string;
+					json: string;
+				}>;
+
+				// Process each row
+				for (const row of rows) {
+					try {
+						const data = JSON.parse(row.json);
+						const requestBody = decodeBase64(data.request?.body);
+						const responseBody = decodeBase64(data.response?.body);
+						insertStmt.run(row.id, requestBody, responseBody);
+					} catch (error) {
+						log.debug(`Failed to process row ${row.id}:`, error);
+						// Insert empty strings on error
+						insertStmt.run(row.id, "", "");
+					}
+				}
+
+				processed += rows.length;
+
+				// Report progress
+				if (onProgress && totalRecords > 100) {
+					const percentage = Math.round((processed / totalRecords) * 100);
+					onProgress({
+						current: processed,
+						total: totalRecords,
+						operation: "Indexing request/response data for search",
+						percentage,
+					});
+				}
+			}
+
+			log.info("FTS migration completed successfully");
+		}
+
+		// Note: We can't create triggers that decode base64 since SQLite doesn't support custom functions in triggers
+		// Instead, we'll handle the decoding when we insert payloads in the RequestRepository
+
+		// Create delete trigger
+		db.run(`
+			CREATE TRIGGER request_payloads_fts_delete
+			AFTER DELETE ON request_payloads
+			BEGIN
+				DELETE FROM request_payloads_fts WHERE id = old.id;
+			END
+		`);
+
+		log.info("FTS5 table and triggers created successfully");
+	}
 }
