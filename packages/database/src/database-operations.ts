@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { Disposable } from "@ccflare/core";
+import type { RuntimeConfig } from "@ccflare/config";
 import type { Account, StrategyStore } from "@ccflare/types";
 import { ensureSchema, runMigrations } from "./migrations";
 import { resolveDbPath } from "./paths";
@@ -14,9 +15,95 @@ import {
 } from "./repositories/request.repository";
 import { StatsRepository } from "./repositories/stats.repository";
 import { StrategyRepository } from "./repositories/strategy.repository";
+import { withDatabaseRetrySync } from "./retry";
 
-export interface RuntimeConfig {
-	sessionDurationMs?: number;
+export interface DatabaseConfig {
+	/** Enable WAL (Write-Ahead Logging) mode for better concurrency */
+	walMode?: boolean;
+	/** SQLite busy timeout in milliseconds */
+	busyTimeoutMs?: number;
+	/** Cache size in pages (negative value = KB) */
+	cacheSize?: number;
+	/** Synchronous mode: OFF, NORMAL, FULL */
+	synchronous?: 'OFF' | 'NORMAL' | 'FULL';
+	/** Memory-mapped I/O size in bytes */
+	mmapSize?: number;
+	/** Retry configuration for database operations */
+	retry?: DatabaseRetryConfig;
+}
+
+export interface DatabaseRetryConfig {
+	/** Maximum number of retry attempts for database operations */
+	attempts?: number;
+	/** Initial delay between retries in milliseconds */
+	delayMs?: number;
+	/** Backoff multiplier for exponential backoff */
+	backoff?: number;
+	/** Maximum delay between retries in milliseconds */
+	maxDelayMs?: number;
+}
+
+/**
+ * Apply SQLite pragmas for optimal performance on distributed filesystems
+ * Integrates your performance improvements with the new architecture
+ */
+function configureSqlite(db: Database, config: DatabaseConfig): void {
+	try {
+		// Check database integrity first
+		const integrityResult = db.query("PRAGMA integrity_check").get() as { integrity_check: string };
+		if (integrityResult.integrity_check !== "ok") {
+			throw new Error(`Database integrity check failed: ${integrityResult.integrity_check}`);
+		}
+
+		// Enable WAL mode for better concurrency (with error handling)
+		if (config.walMode !== false) {
+			try {
+				const result = db.query("PRAGMA journal_mode = WAL").get() as { journal_mode: string };
+				if (result.journal_mode !== "wal") {
+					console.warn("Failed to enable WAL mode, falling back to DELETE mode");
+					db.run("PRAGMA journal_mode = DELETE");
+				}
+			} catch (error) {
+				console.warn("WAL mode failed, using DELETE mode:", error);
+				db.run("PRAGMA journal_mode = DELETE");
+			}
+		}
+
+		// Set busy timeout for lock handling
+		if (config.busyTimeoutMs !== undefined) {
+			db.run(`PRAGMA busy_timeout = ${config.busyTimeoutMs}`);
+		}
+
+		// Configure cache size
+		if (config.cacheSize !== undefined) {
+			db.run(`PRAGMA cache_size = ${config.cacheSize}`);
+		}
+
+		// Set synchronous mode (more conservative for distributed filesystems)
+		const syncMode = config.synchronous || 'FULL'; // Default to FULL for safety
+		db.run(`PRAGMA synchronous = ${syncMode}`);
+
+		// Configure memory-mapped I/O (disable on distributed filesystems if problematic)
+		if (config.mmapSize !== undefined && config.mmapSize > 0) {
+			try {
+				db.run(`PRAGMA mmap_size = ${config.mmapSize}`);
+			} catch (error) {
+				console.warn("Memory-mapped I/O failed, disabling:", error);
+				db.run("PRAGMA mmap_size = 0");
+			}
+		}
+
+		// Additional optimizations for distributed filesystems
+		db.run("PRAGMA temp_store = MEMORY");
+		db.run("PRAGMA foreign_keys = ON");
+
+		// Add checkpoint interval for WAL mode
+		db.run("PRAGMA wal_autocheckpoint = 1000");
+
+	} catch (error) {
+		console.error("Database configuration failed:", error);
+		throw new Error(`Failed to configure SQLite database: ${error}`);
+	}
 }
 
 /**
@@ -26,6 +113,8 @@ export interface RuntimeConfig {
 export class DatabaseOperations implements StrategyStore, Disposable {
 	private db: Database;
 	private runtime?: RuntimeConfig;
+	private dbConfig: DatabaseConfig;
+	private retryConfig: DatabaseRetryConfig;
 
 	// Repositories
 	private accounts: AccountRepository;
@@ -35,8 +124,28 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 	private stats: StatsRepository;
 	private agentPreferences: AgentPreferenceRepository;
 
-	constructor(dbPath?: string) {
+	constructor(dbPath?: string, dbConfig?: DatabaseConfig, retryConfig?: DatabaseRetryConfig) {
 		const resolvedPath = dbPath ?? resolveDbPath();
+
+		// Default database configuration optimized for distributed filesystems
+		// More conservative settings to prevent corruption on Rook Ceph
+		this.dbConfig = {
+			walMode: true,
+			busyTimeoutMs: 10000, // Increased timeout for distributed storage
+			cacheSize: -10000, // Reduced cache size (10MB) for stability
+			synchronous: 'FULL', // Full synchronous mode for data safety
+			mmapSize: 0, // Disable memory-mapped I/O on distributed filesystems
+			...dbConfig
+		};
+
+		// Default retry configuration for database operations
+		this.retryConfig = {
+			attempts: 3,
+			delayMs: 100,
+			backoff: 2,
+			maxDelayMs: 5000,
+			...retryConfig
+		};
 
 		// Ensure the directory exists
 		const dir = dirname(resolvedPath);
@@ -44,10 +153,8 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 
 		this.db = new Database(resolvedPath, { create: true });
 
-		// Configure SQLite for better concurrency
-		this.db.exec("PRAGMA journal_mode = WAL"); // Enable Write-Ahead Logging
-		this.db.exec("PRAGMA busy_timeout = 5000"); // Wait up to 5 seconds before throwing "database is locked"
-		this.db.exec("PRAGMA synchronous = NORMAL"); // Better performance while maintaining safety
+		// Apply SQLite configuration for distributed filesystem optimization
+		configureSqlite(this.db, this.dbConfig);
 
 		ensureSchema(this.db);
 		runMigrations(this.db);
@@ -63,19 +170,38 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 
 	setRuntimeConfig(runtime: RuntimeConfig): void {
 		this.runtime = runtime;
+
+		// Update retry config from runtime config if available
+		if (runtime.database?.retry) {
+			this.retryConfig = {
+				...this.retryConfig,
+				...runtime.database.retry
+			};
+		}
 	}
 
 	getDatabase(): Database {
 		return this.db;
 	}
 
-	// Account operations delegated to repository
+	/**
+	 * Get the current retry configuration
+	 */
+	getRetryConfig(): DatabaseRetryConfig {
+		return this.retryConfig;
+	}
+
+	// Account operations delegated to repository with retry logic
 	getAllAccounts(): Account[] {
-		return this.accounts.findAll();
+		return withDatabaseRetrySync(() => {
+			return this.accounts.findAll();
+		}, this.retryConfig, "getAllAccounts");
 	}
 
 	getAccount(accountId: string): Account | null {
-		return this.accounts.findById(accountId);
+		return withDatabaseRetrySync(() => {
+			return this.accounts.findById(accountId);
+		}, this.retryConfig, "getAccount");
 	}
 
 	updateAccountTokens(
@@ -84,17 +210,23 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 		expiresAt: number,
 		refreshToken?: string,
 	): void {
-		this.accounts.updateTokens(accountId, accessToken, expiresAt, refreshToken);
+		withDatabaseRetrySync(() => {
+			this.accounts.updateTokens(accountId, accessToken, expiresAt, refreshToken);
+		}, this.retryConfig, "updateAccountTokens");
 	}
 
 	updateAccountUsage(accountId: string): void {
 		const sessionDuration =
 			this.runtime?.sessionDurationMs || 5 * 60 * 60 * 1000;
-		this.accounts.incrementUsage(accountId, sessionDuration);
+		withDatabaseRetrySync(() => {
+			this.accounts.incrementUsage(accountId, sessionDuration);
+		}, this.retryConfig, "updateAccountUsage");
 	}
 
 	markAccountRateLimited(accountId: string, until: number): void {
-		this.accounts.setRateLimited(accountId, until);
+		withDatabaseRetrySync(() => {
+			this.accounts.setRateLimited(accountId, until);
+		}, this.retryConfig, "markAccountRateLimited");
 	}
 
 	updateAccountRateLimitMeta(

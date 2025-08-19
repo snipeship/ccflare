@@ -27,6 +27,7 @@ import {
 import {
 	createRequestsDetailHandler,
 	createRequestsSummaryHandler,
+	createRequestPayloadHandler,
 } from "./handlers/requests";
 import { createRequestsStreamHandler } from "./handlers/requests-stream";
 import { createStatsHandler, createStatsResetHandler } from "./handlers/stats";
@@ -105,6 +106,7 @@ export class APIRouter {
 		this.handlers.set("GET:/api/requests/stream", () =>
 			requestsStreamHandler(),
 		);
+		// Note: Dynamic route for request payloads is handled in the handleRequest() method
 		this.handlers.set("GET:/api/config", () => configHandlers.getConfig());
 		this.handlers.set("GET:/api/config/strategy", () =>
 			configHandlers.getStrategy(),
@@ -163,6 +165,14 @@ export class APIRouter {
 		const handler = this.handlers.get(key);
 		if (handler) {
 			return await this.wrapHandler(handler)(req, url);
+		}
+
+		// Check for dynamic request payload endpoints
+		if (path.startsWith("/api/requests/payload/") && method === "GET") {
+			const parts = path.split("/");
+			const requestId = parts[4]; // /api/requests/payload/{id}
+			const requestPayloadHandler = createRequestPayloadHandler(this.context.dbOps);
+			return await this.wrapHandler(() => requestPayloadHandler(requestId))(req, url);
 		}
 
 		// Check for dynamic account endpoints

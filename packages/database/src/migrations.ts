@@ -50,9 +50,19 @@ export function ensureSchema(db: Database): void {
 		)
 	`);
 
-	// Create index for faster queries
+	// Create indexes for faster queries
 	db.run(
 		`CREATE INDEX IF NOT EXISTS idx_requests_timestamp ON requests(timestamp DESC)`,
+	);
+
+	// Index for JOIN performance with accounts table
+	db.run(
+		`CREATE INDEX IF NOT EXISTS idx_requests_account_used ON requests(account_used)`,
+	);
+
+	// Composite index for the main requests query (timestamp DESC with account_used for JOIN)
+	db.run(
+		`CREATE INDEX IF NOT EXISTS idx_requests_timestamp_account ON requests(timestamp DESC, account_used)`,
 	);
 
 	// Create request_payloads table for storing full request/response data

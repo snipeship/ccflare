@@ -196,24 +196,65 @@ export default function startServer(options?: {
 				return apiResponse;
 			}
 
+			// Check API key for auth protection
+			const apiKey = process.env.API_KEY;
+
 			// Dashboard routes (only if enabled)
 			if (withDashboard) {
-				if (url.pathname === "/" || url.pathname === "/dashboard") {
+				// Dashboard routes with API key protection
+				if (url.pathname === "/" || url.pathname === "/dashboard" ||
+					(apiKey && url.pathname === `/${apiKey}/`)) {
+
+					// If API key is required, only allow /{key}/ access
+					if (apiKey && url.pathname !== `/${apiKey}/`) {
+						return new Response("Not Found", { status: HTTP_STATUS.NOT_FOUND });
+					}
+
 					return serveDashboardFile("/index.html", "text/html");
 				}
 
-				// Serve dashboard static assets
-				if ((dashboardManifest as Record<string, string>)[url.pathname]) {
+				// Serve dashboard static assets with auth protection
+				let assetPathname = url.pathname;
+				let isAuthenticatedAssetRequest = false;
+
+				// If API key is set, check for auth-prefixed asset paths
+				if (apiKey && url.pathname.startsWith(`/${apiKey}/`)) {
+					// Strip the key prefix for asset lookup
+					assetPathname = url.pathname.substring(`/${apiKey}`.length);
+					isAuthenticatedAssetRequest = true;
+				}
+
+				if ((dashboardManifest as Record<string, string>)[assetPathname]) {
+					// If API key is required but request is not authenticated, block access
+					if (apiKey && !isAuthenticatedAssetRequest) {
+						return new Response("Not Found", { status: HTTP_STATUS.NOT_FOUND });
+					}
+
 					return serveDashboardFile(
-						url.pathname,
+						assetPathname,
 						undefined,
 						CACHE.CACHE_CONTROL_STATIC,
 					);
 				}
 			}
 
-			// All other paths go to proxy
-			return handleProxy(req, url, proxyContext);
+			// Handle API authentication and proxying
+			if (apiKey) {
+				// Auth required - check for /key/v1/ format
+				const pathParts = url.pathname.split('/').filter(Boolean);
+				if (pathParts[0] === apiKey && pathParts[1] === 'v1') {
+					// Valid auth - rewrite path and proxy
+					url.pathname = '/' + pathParts.slice(1).join('/');
+					return handleProxy(req, url, proxyContext);
+				}
+				return new Response("Not Found", { status: HTTP_STATUS.NOT_FOUND });
+			} else {
+				// No auth required - allow direct /v1/ access
+				if (!url.pathname.startsWith("/v1/")) {
+					return new Response("Not Found", { status: HTTP_STATUS.NOT_FOUND });
+				}
+				return handleProxy(req, url, proxyContext);
+			}
 		},
 	});
 

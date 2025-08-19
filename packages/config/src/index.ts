@@ -8,6 +8,9 @@ import {
 	NETWORK,
 	type StrategyName,
 	TIME_CONSTANTS,
+	validateNumber,
+	validateString,
+	ValidationError,
 } from "@ccflare/core";
 import { Logger } from "@ccflare/logger";
 import { resolveConfigPath } from "./paths";
@@ -19,6 +22,19 @@ export interface RuntimeConfig {
 	retry: { attempts: number; delayMs: number; backoff: number };
 	sessionDurationMs: number;
 	port: number;
+	database?: {
+		walMode?: boolean;
+		busyTimeoutMs?: number;
+		cacheSize?: number;
+		synchronous?: 'OFF' | 'NORMAL' | 'FULL';
+		mmapSize?: number;
+		retry?: {
+			attempts?: number;
+			delayMs?: number;
+			backoff?: number;
+			maxDelayMs?: number;
+		};
+	};
 }
 
 export interface ConfigData {
@@ -29,8 +45,103 @@ export interface ConfigData {
 	retry_backoff?: number;
 	session_duration_ms?: number;
 	port?: number;
+	// Database configuration
+	db_wal_mode?: boolean;
+	db_busy_timeout_ms?: number;
+	db_cache_size?: number;
+	db_synchronous?: 'OFF' | 'NORMAL' | 'FULL';
+	db_mmap_size?: number;
+	db_retry_attempts?: number;
+	db_retry_delay_ms?: number;
+	db_retry_backoff?: number;
+	db_retry_max_delay_ms?: number;
 	default_agent_model?: string;
 	[key: string]: string | number | boolean | undefined;
+}
+
+/**
+ * Validates database configuration parameters
+ */
+function validateDatabaseConfig(config: Partial<RuntimeConfig['database']>): void {
+	if (!config) return;
+
+	// Validate synchronous mode
+	if (config.synchronous !== undefined) {
+		validateString(config.synchronous, 'db_synchronous', {
+			allowedValues: ['OFF', 'NORMAL', 'FULL']
+		});
+	}
+
+	// Validate numeric parameters with reasonable bounds
+	if (config.busyTimeoutMs !== undefined) {
+		validateNumber(config.busyTimeoutMs, 'db_busy_timeout_ms', {
+			min: 0,
+			max: 300000, // 5 minutes max
+			integer: true
+		});
+	}
+
+	if (config.cacheSize !== undefined) {
+		validateNumber(config.cacheSize, 'db_cache_size', {
+			min: -2000000, // -2GB max negative (KB)
+			max: 1000000,  // 1M pages max positive
+			integer: true
+		});
+	}
+
+	if (config.mmapSize !== undefined) {
+		validateNumber(config.mmapSize, 'db_mmap_size', {
+			min: 0,
+			max: 1073741824, // 1GB max
+			integer: true
+		});
+	}
+
+	// Validate retry configuration consistency
+	if (config.retry) {
+		const retry = config.retry;
+
+		if (retry.attempts !== undefined) {
+			validateNumber(retry.attempts, 'db_retry_attempts', {
+				min: 1,
+				max: 10,
+				integer: true
+			});
+		}
+
+		if (retry.delayMs !== undefined) {
+			validateNumber(retry.delayMs, 'db_retry_delay_ms', {
+				min: 1,
+				max: 60000, // 1 minute max
+				integer: true
+			});
+		}
+
+		if (retry.backoff !== undefined) {
+			validateNumber(retry.backoff, 'db_retry_backoff', {
+				min: 1,
+				max: 10
+			});
+		}
+
+		if (retry.maxDelayMs !== undefined) {
+			validateNumber(retry.maxDelayMs, 'db_retry_max_delay_ms', {
+				min: 1,
+				max: 300000, // 5 minutes max
+				integer: true
+			});
+		}
+
+		// Ensure maxDelayMs is greater than delayMs if both are specified
+		if (retry.delayMs !== undefined && retry.maxDelayMs !== undefined) {
+			if (retry.maxDelayMs < retry.delayMs) {
+				throw new ValidationError(
+					'db_retry_max_delay_ms must be greater than or equal to db_retry_delay_ms',
+					'db_retry_max_delay_ms'
+				);
+			}
+		}
+	}
 }
 
 export class Config extends EventEmitter {
@@ -163,6 +274,19 @@ export class Config extends EventEmitter {
 			},
 			sessionDurationMs: TIME_CONSTANTS.SESSION_DURATION_DEFAULT,
 			port: NETWORK.DEFAULT_PORT,
+			database: {
+				walMode: true,
+				busyTimeoutMs: 5000,
+				cacheSize: -20000, // 20MB cache
+				synchronous: 'NORMAL',
+				mmapSize: 268435456, // 256MB
+				retry: {
+					attempts: 3,
+					delayMs: 100,
+					backoff: 2,
+					maxDelayMs: 5000,
+				},
+			},
 		};
 
 		// Override with environment variables if present
@@ -203,6 +327,73 @@ export class Config extends EventEmitter {
 		}
 		if (typeof this.data.port === "number") {
 			defaults.port = this.data.port;
+		}
+
+		// Database configuration overrides
+		// Ensure database configuration object exists
+		if (!defaults.database) {
+			defaults.database = {
+				walMode: true,
+				busyTimeoutMs: 5000,
+				cacheSize: -20000,
+				synchronous: 'NORMAL',
+				mmapSize: 268435456,
+				retry: {
+					attempts: 3,
+					delayMs: 100,
+					backoff: 2,
+					maxDelayMs: 5000,
+				},
+			};
+		}
+
+		// Ensure retry configuration object exists
+		if (!defaults.database.retry) {
+			defaults.database.retry = {
+				attempts: 3,
+				delayMs: 100,
+				backoff: 2,
+				maxDelayMs: 5000,
+			};
+		}
+
+		if (typeof this.data.db_wal_mode === "boolean") {
+			defaults.database.walMode = this.data.db_wal_mode;
+		}
+		if (typeof this.data.db_busy_timeout_ms === "number") {
+			defaults.database.busyTimeoutMs = this.data.db_busy_timeout_ms;
+		}
+		if (typeof this.data.db_cache_size === "number") {
+			defaults.database.cacheSize = this.data.db_cache_size;
+		}
+		if (typeof this.data.db_synchronous === "string") {
+			defaults.database.synchronous = this.data.db_synchronous as 'OFF' | 'NORMAL' | 'FULL';
+		}
+		if (typeof this.data.db_mmap_size === "number") {
+			defaults.database.mmapSize = this.data.db_mmap_size;
+		}
+		if (typeof this.data.db_retry_attempts === "number") {
+			defaults.database.retry.attempts = this.data.db_retry_attempts;
+		}
+		if (typeof this.data.db_retry_delay_ms === "number") {
+			defaults.database.retry.delayMs = this.data.db_retry_delay_ms;
+		}
+		if (typeof this.data.db_retry_backoff === "number") {
+			defaults.database.retry.backoff = this.data.db_retry_backoff;
+		}
+		if (typeof this.data.db_retry_max_delay_ms === "number") {
+			defaults.database.retry.maxDelayMs = this.data.db_retry_max_delay_ms;
+		}
+
+		// Validate the final database configuration
+		try {
+			validateDatabaseConfig(defaults.database);
+		} catch (error) {
+			if (error instanceof ValidationError) {
+				log.error(`Database configuration validation failed: ${error.message}`);
+				throw error;
+			}
+			throw error;
 		}
 
 		return defaults;
