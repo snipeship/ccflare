@@ -14,3 +14,15 @@ export interface AgentUpdatePayload {
 	systemPrompt?: string;
 	mode?: "all" | "edit" | "read-only" | "execution" | "custom";
 }
+
+/**
+ * Search response with pagination metadata
+ */
+export interface SearchResponse<T = unknown> {
+	results: T[];
+	total: number;
+	page: number;
+	pageSize: number;
+	hasNext: boolean;
+	hasPrev: boolean;
+}

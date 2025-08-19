@@ -26,6 +26,47 @@ export type {
 	RequestResponse,
 } from "@ccflare/types";
 
+// Search types
+export interface SearchFilters {
+	accountId?: string;
+	method?: string;
+	path?: string;
+	statusCode?: number;
+	success?: boolean;
+	dateFrom?: string;
+	dateTo?: string;
+	model?: string;
+	agentUsed?: string;
+	limit?: number;
+	offset?: number;
+}
+
+export interface SearchResult {
+	id: string;
+	timestamp: number;
+	method: string;
+	path: string;
+	accountUsed: string | null;
+	accountName: string | null;
+	statusCode: number | null;
+	success: boolean;
+	responseTime: number;
+	model: string | null;
+	agentUsed: string | null;
+	requestSnippet?: string;
+	responseSnippet?: string;
+	requestSnippets?: string[];
+	responseSnippets?: string[];
+	rank: number;
+}
+
+export interface SearchResponse {
+	results: SearchResult[];
+	total: number;
+	query: string;
+	filters: SearchFilters;
+}
+
 // Agent response interface
 export interface AgentsResponse {
 	agents: Agent[];
@@ -296,6 +337,49 @@ class API extends HttpClient {
 			}
 			throw error;
 		}
+	}
+
+	async searchRequests(
+		query: string,
+		filters: SearchFilters = {},
+	): Promise<SearchResponse> {
+		const params = new URLSearchParams({ q: query });
+
+		if (filters.limit !== undefined) {
+			params.append("limit", filters.limit.toString());
+		}
+		if (filters.offset !== undefined) {
+			params.append("offset", filters.offset.toString());
+		}
+		if (filters.accountId) {
+			params.append("accountId", filters.accountId);
+		}
+		if (filters.method) {
+			params.append("method", filters.method);
+		}
+		if (filters.path) {
+			params.append("path", filters.path);
+		}
+		if (filters.statusCode !== undefined) {
+			params.append("statusCode", filters.statusCode.toString());
+		}
+		if (filters.success !== undefined) {
+			params.append("success", filters.success.toString());
+		}
+		if (filters.dateFrom) {
+			params.append("dateFrom", filters.dateFrom);
+		}
+		if (filters.dateTo) {
+			params.append("dateTo", filters.dateTo);
+		}
+		if (filters.model) {
+			params.append("model", filters.model);
+		}
+		if (filters.agentUsed) {
+			params.append("agentUsed", filters.agentUsed);
+		}
+
+		return this.get<SearchResponse>(`/api/requests/search?${params}`);
 	}
 }
 
