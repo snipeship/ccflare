@@ -21,23 +21,29 @@
     --dim-gray: #666666;
     
     /* Fight Colors */
-    --blood-red: #dc2626;
-    --fire-orange: #ea580c;
-    --victory-gold: #f59e0b;
-    --electric-blue: #0ea5e9;
-    --neon-green: #10b981;
-    --warning-yellow: #eab308;
+    --blood-red: #b91c1c;
+    --fire-orange: #c2410c;
+    --victory-gold: #d97706;
+    --electric-blue: #1d4ed8;
+    --neon-green: #059669;
+    --warning-yellow: #ca8a04;
+    --brutal-purple: #7c3aed;
+    --toxic-green: #16a34a;
     
     /* Gradients */
-    --fire-gradient: linear-gradient(135deg, #dc2626, #ea580c);
-    --victory-gradient: linear-gradient(135deg, #f59e0b, #eab308);
-    --electric-gradient: linear-gradient(135deg, #0ea5e9, #06b6d4);
-    --champion-gradient: linear-gradient(135deg, #dc2626, #f59e0b, #eab308);
+    --fire-gradient: linear-gradient(135deg, #b91c1c, #c2410c);
+    --victory-gradient: linear-gradient(135deg, #d97706, #ca8a04);
+    --electric-gradient: linear-gradient(135deg, #1d4ed8, #1e40af);
+    --champion-gradient: linear-gradient(135deg, #b91c1c, #d97706, #ca8a04);
+    --brutal-gradient: linear-gradient(135deg, #7c3aed, #b91c1c, #000000);
+    --cage-gradient: linear-gradient(135deg, #374151, #111827, #000000);
     
     /* Typography */
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-body: 'Roboto Condensed', sans-serif;
-    --font-tech: 'Rajdhani', sans-serif;
+    --font-display: 'Black Ops One', sans-serif;
+    --font-body: 'Oswald', sans-serif;
+    --font-tech: 'Orbitron', monospace;
+    --font-brutal: 'Anton', sans-serif;
+    --font-combat: 'Saira Condensed', sans-serif;
     
     /* Spacing */
     --section-padding: 60px 20px;
@@ -170,12 +176,15 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-        135deg, 
-        rgba(220, 38, 38, 0.8) 0%,
-        rgba(10, 10, 10, 0.9) 50%,
-        rgba(245, 158, 11, 0.8) 100%
-    );
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(185, 28, 28, 0.9) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(124, 58, 237, 0.8) 0%, transparent 50%),
+        linear-gradient(135deg, 
+            rgba(185, 28, 28, 0.7) 0%,
+            rgba(10, 10, 10, 0.95) 50%,
+            rgba(217, 119, 6, 0.7) 100%
+        ),
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grunge" patternUnits="userSpaceOnUse" width="100" height="100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="60" cy="40" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="80" cy="80" r="2.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grunge)"/></svg>');
     z-index: 2;
 }
 
@@ -222,22 +231,24 @@ body {
     font-size: clamp(60px, 8vw, 120px);
     font-weight: 400;
     color: var(--mma-white);
-    letter-spacing: 8px;
-    text-shadow: 4px 4px 12px rgba(0,0,0,0.8);
+    letter-spacing: 12px;
+    text-shadow: 6px 6px 20px rgba(185, 28, 28, 0.8), 0 0 40px rgba(185, 28, 28, 0.6);
     margin-bottom: -10px;
+    transform: perspective(500px) rotateX(15deg);
 }
 
 .event-number {
-    font-family: var(--font-display);
+    font-family: var(--font-brutal);
     font-size: clamp(80px, 12vw, 180px);
     font-weight: 400;
-    background: var(--champion-gradient);
+    background: var(--brutal-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     line-height: 0.8;
     text-shadow: none;
     margin-bottom: 10px;
+    filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.8));
 }
 
 .event-subtitle {
@@ -412,12 +423,14 @@ body {
 }
 
 .fighter-name {
-    font-family: var(--font-display);
+    font-family: var(--font-brutal);
     font-size: 32px;
     color: var(--mma-white);
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     line-height: 1;
     margin-bottom: 4px;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 8px rgba(0,0,0,0.9), 0 0 15px rgba(185, 28, 28, 0.5);
 }
 
 .fighter-nickname {
@@ -430,11 +443,13 @@ body {
 }
 
 .fighter-surname {
-    font-family: var(--font-display);
+    font-family: var(--font-brutal);
     font-size: 28px;
     color: var(--mma-white);
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     margin-bottom: 20px;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 8px rgba(0,0,0,0.9), 0 0 15px rgba(185, 28, 28, 0.5);
 }
 
 .fighter-stats {
@@ -711,11 +726,14 @@ body {
 }
 
 .section-title {
-    font-family: var(--font-display);
+    font-family: var(--font-combat);
     font-size: clamp(36px, 6vw, 64px);
     color: var(--mma-white);
-    letter-spacing: 4px;
+    letter-spacing: 6px;
     margin-bottom: 16px;
+    text-transform: uppercase;
+    font-weight: 900;
+    text-shadow: 4px 4px 12px rgba(0,0,0,0.8), 0 0 20px rgba(185, 28, 28, 0.4);
 }
 
 .section-subtitle {
@@ -1922,6 +1940,30 @@ body {
     font-weight: 600;
 }
 
+/* Anti-Bookmaker Warning */
+.anti-bookmaker-warning {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+    padding: 16px 20px;
+    border-radius: var(--border-radius);
+    margin-top: 20px;
+    border: 2px solid var(--victory-gold);
+    text-align: center;
+    animation: pulseWarning 3s ease-in-out infinite;
+}
+
+.anti-bookmaker-warning strong {
+    font-family: var(--font-display);
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+@keyframes pulseWarning {
+    0%, 100% { box-shadow: 0 0 15px rgba(220, 38, 38, 0.4); }
+    50% { box-shadow: 0 0 30px rgba(220, 38, 38, 0.8); }
+}
+
 /* Disclaimer */
 .disclaimer {
     background: var(--warning-yellow);
@@ -2473,13 +2515,40 @@ body {
    Custom Animations
    ======================================== */
 @keyframes pulseFire {
-    0%, 100% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4); }
-    50% { box-shadow: 0 0 40px rgba(220, 38, 38, 0.8); }
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(185, 28, 28, 0.4), 0 0 40px rgba(185, 28, 28, 0.2);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 40px rgba(185, 28, 28, 0.8), 0 0 80px rgba(185, 28, 28, 0.4);
+        transform: scale(1.02);
+    }
 }
 
 @keyframes pulseGold {
-    0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
-    50% { box-shadow: 0 0 40px rgba(245, 158, 11, 0.8); }
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(217, 119, 6, 0.4), 0 0 40px rgba(217, 119, 6, 0.2);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 40px rgba(217, 119, 6, 0.8), 0 0 80px rgba(217, 119, 6, 0.4);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes brutalShake {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-2px) rotateZ(-1deg); }
+    20% { transform: translateX(2px) rotateZ(1deg); }
+    30% { transform: translateX(-1px) rotateZ(-0.5deg); }
+    40% { transform: translateX(1px) rotateZ(0.5deg); }
+    50% { transform: translateX(0) rotateZ(0deg); }
+}
+
+@keyframes bloodDrip {
+    0% { transform: translateY(-10px); opacity: 0; }
+    10% { opacity: 1; }
+    100% { transform: translateY(20px); opacity: 0; }
 }
 
 .animate-fire {
@@ -2488,6 +2557,19 @@ body {
 
 .animate-gold {
     animation: pulseGold 2s ease-in-out infinite;
+}
+
+.animate-brutal {
+    animation: brutalShake 4s ease-in-out infinite;
+}
+
+.blood-effect::before {
+    content: '💀';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 12px;
+    animation: bloodDrip 3s ease-in-out infinite;
 }
 
 /* Selection */
