@@ -1,0 +1,2584 @@
+/* ========================================
+   FAME MMA 27: KINGDOM - Landing Page
+   MMA Event Styling - Athletic & Aggressive
+   ======================================== */
+
+/* Reset & Variables */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* MMA Color Palette */
+    --mma-black: #0a0a0a;
+    --deep-black: #1a1a1a;
+    --cage-gray: #2a2a2a;
+    --steel-gray: #3a3a3a;
+    --mma-white: #ffffff;
+    --fight-gray: #cccccc;
+    --dim-gray: #666666;
+    
+    /* Fight Colors */
+    --blood-red: #b91c1c;
+    --fire-orange: #c2410c;
+    --victory-gold: #d97706;
+    --electric-blue: #1d4ed8;
+    --neon-green: #059669;
+    --warning-yellow: #ca8a04;
+    --brutal-purple: #7c3aed;
+    --toxic-green: #16a34a;
+    
+    /* Gradients */
+    --fire-gradient: linear-gradient(135deg, #b91c1c, #c2410c);
+    --victory-gradient: linear-gradient(135deg, #d97706, #ca8a04);
+    --electric-gradient: linear-gradient(135deg, #1d4ed8, #1e40af);
+    --champion-gradient: linear-gradient(135deg, #b91c1c, #d97706, #ca8a04);
+    --brutal-gradient: linear-gradient(135deg, #7c3aed, #b91c1c, #000000);
+    --cage-gradient: linear-gradient(135deg, #374151, #111827, #000000);
+    
+    /* Typography */
+    --font-display: 'Black Ops One', sans-serif;
+    --font-body: 'Oswald', sans-serif;
+    --font-tech: 'Orbitron', monospace;
+    --font-brutal: 'Anton', sans-serif;
+    --font-combat: 'Saira Condensed', sans-serif;
+    
+    /* Spacing */
+    --section-padding: 60px 20px;
+    --container-max: 1400px;
+    --border-radius: 12px;
+    --card-radius: 16px;
+    
+    /* Transitions */
+    --smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --quick: all 0.2s ease;
+    --impact: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Base Styles */
+body {
+    font-family: var(--font-body);
+    background: var(--mma-black);
+    color: var(--mma-white);
+    line-height: 1.4;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ========================================
+   Countdown Banner
+   ======================================== */
+.countdown-banner {
+    background: var(--champion-gradient);
+    padding: 15px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-bottom: 3px solid var(--victory-gold);
+}
+
+.countdown-container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+
+.countdown-text {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    color: var(--mma-white);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.countdown-timer {
+    display: flex;
+    gap: 20px;
+}
+
+.time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0,0,0,0.3);
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.time-number {
+    font-family: var(--font-tech);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--mma-white);
+    line-height: 1;
+}
+
+.time-label {
+    font-family: var(--font-display);
+    font-size: 12px;
+    color: var(--mma-white);
+    opacity: 0.9;
+    letter-spacing: 1px;
+}
+
+/* ========================================
+   Hero Section
+   ======================================== */
+.hero-section {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 80px;
+    background: var(--mma-black);
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.hero-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(185, 28, 28, 0.9) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(124, 58, 237, 0.8) 0%, transparent 50%),
+        linear-gradient(135deg, 
+            rgba(185, 28, 28, 0.7) 0%,
+            rgba(10, 10, 10, 0.95) 50%,
+            rgba(217, 119, 6, 0.7) 100%
+        ),
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grunge" patternUnits="userSpaceOnUse" width="100" height="100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="60" cy="40" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="80" cy="80" r="2.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grunge)"/></svg>');
+    z-index: 2;
+}
+
+.hero-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 20%, rgba(234, 88, 12, 0.05) 0%, transparent 50%);
+    animation: particleFloat 15s ease-in-out infinite;
+    z-index: 3;
+}
+
+@keyframes particleFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+    33% { transform: translateY(-15px) rotate(1deg); opacity: 1; }
+    66% { transform: translateY(15px) rotate(-1deg); opacity: 0.8; }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 20px;
+}
+
+/* Event Logo */
+.hero-header {
+    margin-bottom: 60px;
+}
+
+.event-logo {
+    margin-bottom: 40px;
+}
+
+.fame-logo {
+    font-family: var(--font-display);
+    font-size: clamp(60px, 8vw, 120px);
+    font-weight: 400;
+    color: var(--mma-white);
+    letter-spacing: 12px;
+    text-shadow: 6px 6px 20px rgba(185, 28, 28, 0.8), 0 0 40px rgba(185, 28, 28, 0.6);
+    margin-bottom: -10px;
+    transform: perspective(500px) rotateX(15deg);
+}
+
+.event-number {
+    font-family: var(--font-brutal);
+    font-size: clamp(80px, 12vw, 180px);
+    font-weight: 400;
+    background: var(--brutal-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 0.8;
+    text-shadow: none;
+    margin-bottom: 10px;
+    filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.8));
+}
+
+.event-subtitle {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 4vw, 48px);
+    font-weight: 400;
+    color: var(--victory-gold);
+    letter-spacing: 6px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+}
+
+/* Event Details */
+.event-details {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.event-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0,0,0,0.4);
+    border-radius: var(--card-radius);
+    border: 2px solid var(--fire-orange);
+}
+
+.date-day {
+    font-family: var(--font-display);
+    font-size: 64px;
+    color: var(--mma-white);
+    line-height: 1;
+}
+
+.date-month {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--fire-orange);
+    letter-spacing: 2px;
+}
+
+.date-year {
+    font-family: var(--font-tech);
+    font-size: 24px;
+    color: var(--victory-gold);
+    font-weight: 700;
+}
+
+.event-venue {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0,0,0,0.4);
+    border-radius: var(--card-radius);
+    border: 2px solid var(--electric-blue);
+}
+
+.venue-name {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+.venue-city {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--electric-blue);
+    font-weight: 700;
+    margin: 8px 0;
+}
+
+.venue-time {
+    font-family: var(--font-tech);
+    font-size: 24px;
+    color: var(--victory-gold);
+    font-weight: 700;
+}
+
+/* ========================================
+   Main Event Showcase
+   ======================================== */
+.main-event-showcase {
+    margin-bottom: 60px;
+}
+
+.fighters-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 40px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.fighter-card {
+    background: rgba(0,0,0,0.6);
+    border-radius: var(--card-radius);
+    padding: 30px;
+    border: 3px solid transparent;
+    transition: var(--smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.fighter-card.left {
+    border-color: var(--blood-red);
+    text-align: right;
+}
+
+.fighter-card.right {
+    border-color: var(--electric-blue);
+    text-align: left;
+}
+
+.fighter-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+.fighter-card.left:hover {
+    box-shadow: 0 20px 40px rgba(220, 38, 38, 0.4);
+}
+
+.fighter-card.right:hover {
+    box-shadow: 0 20px 40px rgba(14, 165, 233, 0.4);
+}
+
+.fighter-image {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.fighter-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--victory-gold);
+}
+
+.fighter-flame {
+    position: absolute;
+    top: -10px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: flameGlow 2s ease-in-out infinite alternate;
+}
+
+.left-flame {
+    right: -10px;
+    background: radial-gradient(circle, var(--blood-red), transparent);
+}
+
+.right-flame {
+    left: -10px;
+    background: radial-gradient(circle, var(--electric-blue), transparent);
+}
+
+@keyframes flameGlow {
+    0% { transform: scale(1); opacity: 0.3; }
+    100% { transform: scale(1.1); opacity: 0.6; }
+}
+
+.fighter-name {
+    font-family: var(--font-brutal);
+    font-size: 32px;
+    color: var(--mma-white);
+    letter-spacing: 3px;
+    line-height: 1;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 8px rgba(0,0,0,0.9), 0 0 15px rgba(185, 28, 28, 0.5);
+}
+
+.fighter-nickname {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    font-style: italic;
+    margin-bottom: 4px;
+}
+
+.fighter-surname {
+    font-family: var(--font-brutal);
+    font-size: 28px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 8px rgba(0,0,0,0.9), 0 0 15px rgba(185, 28, 28, 0.5);
+}
+
+.fighter-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fighter-card.left .stat {
+    flex-direction: row-reverse;
+}
+
+.stat-value {
+    font-family: var(--font-tech);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--victory-gold);
+}
+
+.stat-label {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--fight-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fighter-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.title {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* VS Container */
+.vs-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.vs-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    background: var(--champion-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid var(--mma-white);
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+}
+
+.vs-text {
+    font-family: var(--font-display);
+    font-size: 48px;
+    color: var(--mma-white);
+    font-weight: 400;
+    letter-spacing: 4px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.vs-sparks {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.3), transparent);
+    border-radius: 50%;
+    animation: sparkle 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.6; }
+    50% { transform: rotate(180deg) scale(1.1); opacity: 1; }
+}
+
+.belt-stakes {
+    text-align: center;
+}
+
+.belt-text {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--victory-gold);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+
+.belt-subtitle {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-style: italic;
+}
+
+/* Fight Details */
+.fight-details {
+    text-align: center;
+}
+
+.fight-format {
+    margin-bottom: 8px;
+}
+
+.format-text {
+    font-family: var(--font-tech);
+    font-size: 16px;
+    color: var(--electric-blue);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fight-stakes {
+    margin-bottom: 20px;
+}
+
+.stakes-text {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ========================================
+   CTA Buttons
+   ======================================== */
+.hero-cta {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.cta-primary,
+.cta-secondary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 32px;
+    border-radius: var(--card-radius);
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: var(--impact);
+    text-decoration: none;
+    border: none;
+    min-width: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-primary {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+}
+
+.cta-secondary {
+    background: transparent;
+    color: var(--electric-blue);
+    border: 3px solid var(--electric-blue);
+}
+
+.cta-primary:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(220, 38, 38, 0.6);
+}
+
+.cta-secondary:hover {
+    background: var(--electric-blue);
+    color: var(--mma-white);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(14, 165, 233, 0.4);
+}
+
+.cta-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.cta-text {
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.cta-price {
+    font-family: var(--font-tech);
+    font-size: 16px;
+    font-weight: 700;
+    opacity: 0.9;
+}
+
+/* ========================================
+   Hype Indicators
+   ======================================== */
+.hype-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.hype-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    background: rgba(0,0,0,0.4);
+    border-radius: var(--border-radius);
+    border: 2px solid var(--steel-gray);
+    min-width: 140px;
+}
+
+.hype-stat.trending {
+    border-color: var(--victory-gold);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.hype-number {
+    font-family: var(--font-tech);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--victory-gold);
+    margin-bottom: 4px;
+}
+
+.hype-label {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--fight-gray);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ========================================
+   Fight Card Section
+   ======================================== */
+.fight-card-section {
+    padding: var(--section-padding);
+    background: var(--deep-black);
+    position: relative;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-title {
+    font-family: var(--font-combat);
+    font-size: clamp(36px, 6vw, 64px);
+    color: var(--mma-white);
+    letter-spacing: 6px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    font-weight: 900;
+    text-shadow: 4px 4px 12px rgba(0,0,0,0.8), 0 0 20px rgba(185, 28, 28, 0.4);
+}
+
+.section-subtitle {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Fight Card */
+.fight-card {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.fight-item {
+    background: var(--cage-gray);
+    border-radius: var(--card-radius);
+    padding: 24px;
+    border: 2px solid var(--steel-gray);
+    transition: var(--smooth);
+}
+
+.fight-item.main-event {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(245, 158, 11, 0.1));
+    border-color: var(--victory-gold);
+    border-width: 3px;
+}
+
+.fight-item.co-main {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(16, 185, 129, 0.1));
+    border-color: var(--electric-blue);
+}
+
+.fight-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+}
+
+.fight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.fight-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.fight-status.main {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+}
+
+.fight-status.co-main {
+    background: var(--electric-gradient);
+    color: var(--mma-white);
+}
+
+.fight-type {
+    font-family: var(--font-tech);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.fight-matchup {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.fighter-simple {
+    text-align: center;
+}
+
+.fighter-name-simple {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.fighter-record {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-weight: 600;
+}
+
+.vs-simple {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--victory-gold);
+    font-weight: 400;
+}
+
+.fight-stakes {
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    font-style: italic;
+    text-transform: uppercase;
+}
+
+.more-fights {
+    text-align: center;
+    padding: 30px;
+    background: var(--mma-black);
+    border-radius: var(--card-radius);
+    border: 2px dashed var(--steel-gray);
+}
+
+.more-text {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--victory-gold);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.more-subtitle {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-style: italic;
+}
+
+/* ========================================
+   Tickets Section
+   ======================================== */
+.tickets-section {
+    padding: var(--section-padding);
+    background: var(--mma-black);
+}
+
+.tickets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.ticket-category {
+    background: var(--deep-black);
+    border-radius: var(--card-radius);
+    padding: 32px;
+    border: 3px solid var(--steel-gray);
+    transition: var(--smooth);
+}
+
+.live-tickets {
+    border-color: var(--fire-orange);
+}
+
+.ppv-tickets {
+    border-color: var(--electric-blue);
+}
+
+.ticket-category:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.ticket-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--cage-gray);
+}
+
+.ticket-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.ticket-type {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.ticket-venue {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--fight-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ticket-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.ticket-option {
+    background: var(--cage-gray);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    border: 2px solid transparent;
+    transition: var(--smooth);
+}
+
+.ticket-option.premium {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(220, 38, 38, 0.1));
+    border-color: var(--victory-gold);
+}
+
+.ticket-option.recommended {
+    position: relative;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(16, 185, 129, 0.1));
+    border-color: var(--electric-blue);
+}
+
+.option-badge {
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    background: var(--victory-gold);
+    color: var(--mma-black);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 1px;
+}
+
+.option-name {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.option-features {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.option-features span {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-weight: 400;
+}
+
+.option-price {
+    font-family: var(--font-tech);
+    font-size: 24px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.option-status {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.option-status.available {
+    background: var(--neon-green);
+    color: var(--mma-black);
+}
+
+.option-status.limited {
+    background: var(--warning-yellow);
+    color: var(--mma-black);
+}
+
+.option-status.sold-out {
+    background: var(--blood-red);
+    color: var(--mma-white);
+}
+
+.ticket-cta {
+    width: 100%;
+    padding: 16px 24px;
+    border-radius: var(--border-radius);
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: var(--impact);
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.ticket-cta.primary {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+}
+
+.ticket-cta.secondary {
+    background: var(--electric-gradient);
+    color: var(--mma-white);
+}
+
+.ticket-cta:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.cta-urgency {
+    font-family: var(--font-body);
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ppv-bonus {
+    background: var(--victory-gradient);
+    color: var(--mma-black);
+    padding: 12px;
+    border-radius: var(--border-radius);
+    text-align: center;
+    margin-top: 8px;
+}
+
+.bonus-text {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 1px;
+}
+
+.bonus-subtitle {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Special Offer */
+.special-offer {
+    background: var(--champion-gradient);
+    border-radius: var(--card-radius);
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.offer-header {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+}
+
+.offer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.offer-title {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--mma-white);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.offer-description {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--mma-white);
+    opacity: 0.9;
+}
+
+.offer-discount {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+/* ========================================
+   Hype Section
+   ======================================== */
+.hype-section {
+    padding: var(--section-padding);
+    background: var(--deep-black);
+    text-align: center;
+}
+
+.hype-stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+}
+
+.hype-stat-big {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hype-stat-big .stat-number {
+    font-family: var(--font-tech);
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--victory-gold);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.hype-stat-big .stat-label {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.social-buzz {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.buzz-header {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.buzz-hashtags {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.hashtag {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.buzz-text {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    font-style: italic;
+}
+
+/* ========================================
+   Final CTA Section
+   ======================================== */
+.final-cta-section {
+    padding: var(--section-padding);
+    background: linear-gradient(135deg, var(--mma-black) 0%, var(--deep-black) 50%, var(--mma-black) 100%);
+    text-align: center;
+    position: relative;
+}
+
+.final-cta-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.cta-header {
+    margin-bottom: 60px;
+}
+
+.cta-countdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.countdown-text {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+}
+
+.countdown-number {
+    font-family: var(--font-tech);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--blood-red);
+    text-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
+}
+
+.cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 6vw, 56px);
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.cta-subtitle {
+    font-family: var(--font-body);
+    font-size: 20px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+.final-cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.final-cta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 32px;
+    border-radius: var(--card-radius);
+    font-family: var(--font-display);
+    cursor: pointer;
+    transition: var(--impact);
+    border: none;
+    text-decoration: none;
+    min-width: 280px;
+}
+
+.final-cta.primary {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+}
+
+.final-cta.secondary {
+    background: var(--electric-gradient);
+    color: var(--mma-white);
+    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
+}
+
+.final-cta:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+}
+
+.final-cta .cta-icon {
+    font-size: 32px;
+}
+
+.cta-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.cta-main {
+    font-size: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+
+.cta-sub {
+    font-family: var(--font-body);
+    font-size: 14px;
+    opacity: 0.9;
+    font-weight: 600;
+}
+
+.urgency-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.urgency-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.urgency-icon {
+    font-size: 20px;
+}
+
+.urgency-text {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-weight: 600;
+}
+
+/* ========================================
+   Main Story Section
+   ======================================== */
+.main-story-section {
+    padding: var(--section-padding);
+    background: linear-gradient(135deg, var(--deep-black) 0%, var(--mma-black) 50%, var(--deep-black) 100%);
+    position: relative;
+}
+
+.story-content {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.story-narrative {
+    background: var(--cage-gray);
+    border-radius: var(--card-radius);
+    padding: 40px;
+    border: 3px solid var(--victory-gold);
+    position: relative;
+    overflow: hidden;
+}
+
+.story-narrative::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.narrative-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 2;
+}
+
+.story-icon {
+    font-size: 48px;
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+}
+
+.story-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+
+.story-text {
+    position: relative;
+    z-index: 2;
+}
+
+.story-intro {
+    font-family: var(--font-body);
+    font-size: 20px;
+    line-height: 1.6;
+    color: var(--mma-white);
+    margin-bottom: 32px;
+    text-align: justify;
+}
+
+.highlight {
+    color: var(--victory-gold);
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.story-chapters {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.chapter {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    background: var(--mma-black);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--fire-orange);
+    transition: var(--smooth);
+}
+
+.chapter:hover {
+    transform: translateX(8px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.chapter-number {
+    font-family: var(--font-tech);
+    font-size: 36px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    line-height: 1;
+    min-width: 60px;
+}
+
+.chapter-content {
+    flex: 1;
+}
+
+.chapter-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.chapter-content p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--fight-gray);
+}
+
+.story-climax {
+    text-align: center;
+    padding: 24px;
+    background: var(--champion-gradient);
+    border-radius: var(--border-radius);
+    position: relative;
+}
+
+.climax-text {
+    font-family: var(--font-body);
+    font-size: 20px;
+    color: var(--mma-black);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* ========================================
+   Betting Analysis Section
+   ======================================== */
+.betting-analysis-section {
+    padding: var(--section-padding);
+    background: var(--mma-black);
+    position: relative;
+}
+
+.expert-panel {
+    background: var(--deep-black);
+    border-radius: var(--card-radius);
+    padding: 32px;
+    margin-bottom: 40px;
+    border: 2px solid var(--electric-blue);
+}
+
+.panel-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.panel-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--electric-blue);
+    font-weight: 600;
+    font-style: italic;
+}
+
+.experts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.expert-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--cage-gray);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    border: 2px solid transparent;
+    transition: var(--smooth);
+}
+
+.expert-card:hover {
+    border-color: var(--victory-gold);
+    transform: translateY(-4px);
+}
+
+.expert-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--electric-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--mma-white);
+}
+
+.expert-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.expert-title {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--electric-blue);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.expert-record {
+    font-family: var(--font-tech);
+    font-size: 12px;
+    color: var(--victory-gold);
+    font-weight: 700;
+}
+
+/* Fight Predictions */
+.predictions-section {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.fight-prediction {
+    background: var(--deep-black);
+    border-radius: var(--card-radius);
+    padding: 32px;
+    border: 3px solid transparent;
+}
+
+.main-prediction {
+    border-color: var(--victory-gold);
+}
+
+.co-main-prediction {
+    border-color: var(--electric-blue);
+}
+
+.prediction-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.fight-type-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.main-event-badge {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+}
+
+.co-main-badge {
+    background: var(--electric-gradient);
+    color: var(--mma-white);
+}
+
+.prediction-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.prediction-format {
+    font-family: var(--font-tech);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Fighters Analysis */
+.fighters-analysis {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 32px;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.fighter-analysis {
+    background: var(--cage-gray);
+    padding: 24px;
+    border-radius: var(--border-radius);
+}
+
+.fighter-name-pred {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.analysis-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.metric-label {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--fight-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.metric-bar {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background: var(--steel-gray);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.metric-fill {
+    height: 100%;
+    background: var(--victory-gradient);
+    border-radius: 4px;
+    transition: width 1s ease-out;
+}
+
+.metric-value {
+    position: absolute;
+    right: 0;
+    top: -20px;
+    font-family: var(--font-tech);
+    font-size: 12px;
+    color: var(--victory-gold);
+    font-weight: 700;
+}
+
+.prediction-odds {
+    text-align: center;
+    padding: 16px;
+    background: var(--mma-black);
+    border-radius: var(--border-radius);
+}
+
+.odds-label {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--fight-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.odds-value {
+    font-family: var(--font-tech);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.odds-value.favorite {
+    color: var(--neon-green);
+}
+
+.odds-value.underdog {
+    color: var(--fire-orange);
+}
+
+/* VS Prediction */
+.vs-prediction {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    min-width: 120px;
+}
+
+.prediction-icon {
+    font-size: 48px;
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+}
+
+.prediction-method {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--victory-gold);
+    letter-spacing: 1px;
+}
+
+.prediction-round {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--fight-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Expert Verdict */
+.expert-verdict {
+    background: var(--steel-gray);
+    padding: 24px;
+    border-radius: var(--border-radius);
+}
+
+.verdict-header {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.verdict-content p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--fight-gray);
+    margin-bottom: 16px;
+}
+
+.prediction-summary {
+    background: var(--mma-black);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--victory-gold);
+    margin-top: 16px;
+}
+
+.summary-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--victory-gold);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.summary-result {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--mma-white);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.summary-confidence {
+    font-family: var(--font-tech);
+    font-size: 14px;
+    color: var(--electric-blue);
+    font-weight: 600;
+}
+
+/* Quick Predictions */
+.quick-predictions {
+    background: var(--cage-gray);
+    border-radius: var(--card-radius);
+    padding: 24px;
+    border: 2px solid var(--steel-gray);
+}
+
+.quick-predictions-header h4 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.quick-fights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.quick-fight {
+    background: var(--mma-black);
+    padding: 16px;
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quick-matchup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-fighter {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+}
+
+.quick-vs {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--fight-gray);
+    font-weight: 600;
+}
+
+.quick-prediction {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.quick-winner {
+    font-family: var(--font-tech);
+    font-size: 14px;
+    color: var(--victory-gold);
+    font-weight: 700;
+}
+
+.quick-confidence {
+    font-family: var(--font-tech);
+    font-size: 12px;
+    color: var(--neon-green);
+    font-weight: 600;
+}
+
+/* Anti-Bookmaker Warning */
+.anti-bookmaker-warning {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+    padding: 16px 20px;
+    border-radius: var(--border-radius);
+    margin-top: 20px;
+    border: 2px solid var(--victory-gold);
+    text-align: center;
+    animation: pulseWarning 3s ease-in-out infinite;
+}
+
+.anti-bookmaker-warning strong {
+    font-family: var(--font-display);
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+@keyframes pulseWarning {
+    0%, 100% { box-shadow: 0 0 15px rgba(220, 38, 38, 0.4); }
+    50% { box-shadow: 0 0 30px rgba(220, 38, 38, 0.8); }
+}
+
+/* Disclaimer */
+.disclaimer {
+    background: var(--warning-yellow);
+    color: var(--mma-black);
+    padding: 16px 24px;
+    border-radius: var(--border-radius);
+    margin-top: 32px;
+}
+
+.disclaimer-text {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* ========================================
+   Fan Contest Section
+   ======================================== */
+.fan-contest-section {
+    padding: var(--section-padding);
+    background: linear-gradient(135deg, var(--mma-black) 0%, var(--deep-black) 50%, var(--mma-black) 100%);
+    position: relative;
+}
+
+.contest-hero {
+    position: relative;
+    background: var(--cage-gray);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    border: 3px solid var(--victory-gold);
+}
+
+.contest-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.contest-pattern {
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 30%, rgba(245, 158, 11, 0.05) 50%, transparent 70%);
+    animation: contestPattern 10s ease-in-out infinite alternate;
+}
+
+@keyframes contestPattern {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.6; }
+    100% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+}
+
+.contest-content {
+    position: relative;
+    z-index: 2;
+    padding: 40px;
+}
+
+.contest-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.contest-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8));
+}
+
+.contest-title {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 6vw, 48px);
+    color: var(--mma-white);
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+}
+
+.contest-subtitle {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Contest Prizes */
+.contest-prizes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.prize-item {
+    background: var(--mma-black);
+    padding: 24px;
+    border-radius: var(--border-radius);
+    border: 2px solid transparent;
+    transition: var(--impact);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.grand-prize {
+    border-color: var(--victory-gold);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(220, 38, 38, 0.1));
+}
+
+.second-prize {
+    border-color: var(--fight-gray);
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), rgba(169, 169, 169, 0.1));
+}
+
+.third-prize {
+    border-color: var(--fire-orange);
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), rgba(184, 115, 51, 0.1));
+}
+
+.prize-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+
+.prize-position {
+    font-size: 40px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.prize-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.prize-value {
+    font-family: var(--font-tech);
+    font-size: 20px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.prize-desc {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-style: italic;
+}
+
+/* Contest Mechanics */
+.contest-mechanics {
+    margin-bottom: 40px;
+}
+
+.mechanics-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.mechanics-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--mma-black);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--electric-blue);
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--electric-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-tech);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--mma-white);
+    flex-shrink: 0;
+}
+
+.step-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--mma-white);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.step-desc {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    line-height: 1.4;
+}
+
+/* Contest CTA */
+.contest-cta {
+    text-align: center;
+}
+
+.contest-btn {
+    background: var(--champion-gradient);
+    border: none;
+    color: var(--mma-white);
+    padding: 24px 40px;
+    border-radius: var(--card-radius);
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: var(--impact);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto 32px;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+    max-width: 300px;
+}
+
+.contest-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(245, 158, 11, 0.6);
+}
+
+.btn-icon {
+    font-size: 24px;
+}
+
+.btn-subtitle {
+    font-family: var(--font-body);
+    font-size: 14px;
+    opacity: 0.9;
+    font-weight: 600;
+}
+
+.contest-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.contest-stats .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--mma-black);
+    padding: 16px 20px;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--steel-gray);
+    min-width: 120px;
+}
+
+.stat-number {
+    font-family: var(--font-tech);
+    font-size: 24px;
+    color: var(--victory-gold);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--fight-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+/* ========================================
+   Footer Updates
+   ======================================== */
+.footer {
+    background: var(--mma-black);
+    border-top: 3px solid var(--victory-gold);
+    padding: 40px 0 20px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 40px;
+}
+
+.footer-logo {
+    font-family: var(--font-display);
+    font-size: 36px;
+    color: var(--mma-white);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.footer-subtitle {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--victory-gold);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.footer-date {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    font-weight: 600;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.footer-link {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fight-gray);
+    text-decoration: none;
+    transition: var(--quick);
+}
+
+.footer-link:hover {
+    color: var(--victory-gold);
+}
+
+.footer-social {
+    display: flex;
+    gap: 16px;
+}
+
+.social-link {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--electric-blue);
+    text-decoration: none;
+    transition: var(--quick);
+}
+
+.social-link:hover {
+    color: var(--victory-gold);
+}
+
+.footer-bottom {
+    border-top: 1px solid var(--cage-gray);
+    padding-top: 20px;
+    text-align: center;
+}
+
+.footer-copyright {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--dim-gray);
+    font-weight: 400;
+}
+
+/* ========================================
+   Floating CTA (Mobile)
+   ======================================== */
+.floating-cta {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none;
+}
+
+.floating-btn {
+    background: var(--fire-gradient);
+    color: var(--mma-white);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 24px;
+    font-family: var(--font-display);
+    font-size: 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: var(--impact);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.floating-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(220, 38, 38, 0.6);
+}
+
+.floating-text {
+    font-size: 14px;
+}
+
+.floating-price {
+    font-family: var(--font-tech);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+@media (max-width: 1200px) {
+    .fighters-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        text-align: center;
+    }
+    
+    .fighter-card.left {
+        text-align: center;
+    }
+    
+    .vs-container {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .countdown-container {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .countdown-text {
+        font-size: 18px;
+    }
+    
+    .time-number {
+        font-size: 24px;
+    }
+    
+    .event-details {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .hero-cta {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hype-indicators {
+        gap: 20px;
+    }
+    
+    .tickets-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hype-stats {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .final-cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .urgency-indicators {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .floating-cta {
+        display: block;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --section-padding: 40px 16px;
+    }
+    
+    .countdown-timer {
+        gap: 12px;
+    }
+    
+    .time-unit {
+        padding: 6px 12px;
+    }
+    
+    .fighter-card {
+        padding: 20px;
+    }
+    
+    .fighter-photo {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .vs-circle {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .vs-text {
+        font-size: 36px;
+    }
+    
+    .fight-matchup {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .vs-simple {
+        order: -1;
+    }
+    
+    .offer-content {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+/* ========================================
+   Custom Animations
+   ======================================== */
+@keyframes pulseFire {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(185, 28, 28, 0.4), 0 0 40px rgba(185, 28, 28, 0.2);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 40px rgba(185, 28, 28, 0.8), 0 0 80px rgba(185, 28, 28, 0.4);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes pulseGold {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(217, 119, 6, 0.4), 0 0 40px rgba(217, 119, 6, 0.2);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 40px rgba(217, 119, 6, 0.8), 0 0 80px rgba(217, 119, 6, 0.4);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes brutalShake {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-2px) rotateZ(-1deg); }
+    20% { transform: translateX(2px) rotateZ(1deg); }
+    30% { transform: translateX(-1px) rotateZ(-0.5deg); }
+    40% { transform: translateX(1px) rotateZ(0.5deg); }
+    50% { transform: translateX(0) rotateZ(0deg); }
+}
+
+@keyframes bloodDrip {
+    0% { transform: translateY(-10px); opacity: 0; }
+    10% { opacity: 1; }
+    100% { transform: translateY(20px); opacity: 0; }
+}
+
+.animate-fire {
+    animation: pulseFire 2s ease-in-out infinite;
+}
+
+.animate-gold {
+    animation: pulseGold 2s ease-in-out infinite;
+}
+
+.animate-brutal {
+    animation: brutalShake 4s ease-in-out infinite;
+}
+
+.blood-effect::before {
+    content: '💀';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 12px;
+    animation: bloodDrip 3s ease-in-out infinite;
+}
+
+/* Selection */
+::selection {
+    background: rgba(245, 158, 11, 0.3);
+    color: var(--mma-white);
+}
+
+::-moz-selection {
+    background: rgba(245, 158, 11, 0.3);
+    color: var(--mma-white);
+}

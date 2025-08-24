@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>byMN.agency - Experience Your AI Transformation | Choose Your Future</title>
+    <meta name="description" content="Don't just see what AI can do. Experience exactly how it will transform YOUR specific situation. Interactive AI transformation stories.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles-breakthrough.css">
+</head>
+<body>
+    <!-- Story Selection Intro -->
+    <div id="story-intro" class="story-intro">
+        <div class="intro-background">
+            <div class="neural-particles"></div>
+            <div class="human-silhouettes"></div>
+        </div>
+        <div class="intro-content">
+            <div class="intro-header">
+                <div class="logo">
+                    <span class="logo-text">byMN</span>
+                    <span class="logo-dot">.</span>
+                    <span class="logo-extension">agency</span>
+                </div>
+                <div class="tagline">Experience Your AI Transformation</div>
+            </div>
+            
+            <div class="story-selection">
+                <h1 class="selection-title">
+                    <span class="title-line">What's your biggest</span>
+                    <span class="title-line highlight">daily frustration?</span>
+                </h1>
+                
+                <div class="selection-subtitle">
+                    Choose your path. Experience your future. See exactly how AI transforms YOUR specific situation.
+                </div>
+                
+                <div class="story-paths">
+                    <div class="story-path" data-story="email-overwhelm">
+                        <div class="path-emoji">📧</div>
+                        <div class="path-content">
+                            <h3 class="path-title">Email Overwhelm</h3>
+                            <p class="path-description">I spend 3+ hours daily managing emails, missing important messages in the chaos</p>
+                            <div class="path-impact">Watch Sarah transform from email slave to strategic leader</div>
+                        </div>
+                        <div class="path-arrow">→</div>
+                    </div>
+                    
+                    <div class="story-path" data-story="report-hell">
+                        <div class="path-emoji">📊</div>
+                        <div class="path-content">
+                            <h3 class="path-title">Report Hell</h3>
+                            <p class="path-description">Creating reports takes days of manual work, leaving no time for analysis</p>
+                            <div class="path-impact">Follow Marcus from data gatherer to insight generator</div>
+                        </div>
+                        <div class="path-arrow">→</div>
+                    </div>
+                    
+                    <div class="story-path" data-story="repetitive-tasks">
+                        <div class="path-emoji">🔄</div>
+                        <div class="path-content">
+                            <h3 class="path-title">Repetitive Task Prison</h3>
+                            <p class="path-description">My team wastes hours on manual, repetitive work that kills creativity</p>
+                            <div class="path-impact">See how Emma's team rediscovered innovation</div>
+                        </div>
+                        <div class="path-arrow">→</div>
+                    </div>
+                    
+                    <div class="story-path" data-story="lost-revenue">
+                        <div class="path-emoji">💰</div>
+                        <div class="path-content">
+                            <h3 class="path-title">Hidden Revenue Leaks</h3>
+                            <p class="path-description">I know we're losing money somewhere but can't identify where or why</p>
+                            <div class="path-impact">Journey with David to discover £2.3M in hidden opportunities</div>
+                        </div>
+                        <div class="path-arrow">→</div>
+                    </div>
+                </div>
+                
+                <div class="selection-footer">
+                    <div class="trust-indicator">
+                        <span class="trust-text">Join 47 strategic leaders experiencing AI transformation</span>
+                        <div class="trust-avatars">
+                            <div class="avatar"></div>
+                            <div class="avatar"></div>
+                            <div class="avatar"></div>
+                            <div class="avatar more">+44</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Story Experience -->
+    <main class="story-experience" id="story-experience" style="display: none;">
+        <!-- Navigation -->
+        <nav class="story-nav">
+            <div class="nav-container">
+                <div class="nav-left">
+                    <div class="logo">
+                        <span class="logo-text">byMN</span>
+                        <span class="logo-dot">.</span>
+                        <span class="logo-extension">agency</span>
+                    </div>
+                    <div class="story-indicator">
+                        <span class="story-title" id="current-story-title">Sarah's Email Transformation</span>
+                        <div class="story-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="story-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-right">
+                    <button class="nav-btn" id="switch-perspective">
+                        <span class="btn-icon">👥</span>
+                        <span class="btn-text">Switch View</span>
+                    </button>
+                    <button class="nav-btn" id="show-tech">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">Tech Deep Dive</span>
+                    </button>
+                    <button class="nav-btn primary" id="start-transformation">
+                        <span class="btn-text">Start My Transformation</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Split Screen Experience -->
+        <div class="split-experience">
+            <!-- Human Story Side -->
+            <div class="human-story" id="human-story">
+                <div class="story-container">
+                    <div class="story-header">
+                        <div class="character-info">
+                            <div class="character-avatar" id="character-avatar"></div>
+                            <div class="character-details">
+                                <h2 class="character-name" id="character-name">Sarah Chen</h2>
+                                <p class="character-role" id="character-role">Marketing Director, TechCorp</p>
+                            </div>
+                        </div>
+                        <div class="story-timeline">
+                            <div class="timeline-slider" id="timeline-slider">
+                                <div class="timeline-track">
+                                    <div class="timeline-point active" data-time="before">Before</div>
+                                    <div class="timeline-point" data-time="week1">Week 1</div>
+                                    <div class="timeline-point" data-time="month1">Month 1</div>
+                                    <div class="timeline-point" data-time="month3">Month 3</div>
+                                    <div class="timeline-point" data-time="after">After</div>
+                                </div>
+                                <div class="timeline-handle" id="timeline-handle"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="story-content" id="story-content">
+                        <!-- Dynamic content will be loaded here -->
+                    </div>
+                    
+                    <div class="story-choices" id="story-choices">
+                        <!-- Choice points will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Deep Dive Side -->
+            <div class="tech-story" id="tech-story">
+                <div class="tech-container">
+                    <div class="tech-header">
+                        <h3 class="tech-title">How the AI Works</h3>
+                        <div class="tech-tabs">
+                            <button class="tech-tab active" data-tab="neural">Neural Network</button>
+                            <button class="tech-tab" data-tab="code">Live Code</button>
+                            <button class="tech-tab" data-tab="metrics">Performance</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tech-content">
+                        <div class="tech-panel active" id="neural-panel">
+                            <div class="neural-visualization">
+                                <canvas id="neural-canvas" width="400" height="300"></canvas>
+                                <div class="neural-explanation" id="neural-explanation">
+                                    AI processes Sarah's emails through natural language understanding...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-panel" id="code-panel">
+                            <div class="code-editor">
+                                <div class="code-header">
+                                    <span class="code-file">email_prioritizer.py</span>
+                                    <div class="code-status running">EXECUTING</div>
+                                </div>
+                                <pre class="code-content" id="live-code"></pre>
+                                <div class="code-output" id="code-output"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-panel" id="metrics-panel">
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <div class="metric-value" id="processing-speed">2.3ms</div>
+                                    <div class="metric-label">Processing Speed</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value" id="accuracy-rate">97.8%</div>
+                                    <div class="metric-label">Accuracy Rate</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value" id="time-saved">2.7h</div>
+                                    <div class="metric-label">Daily Time Saved</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value" id="cost-reduction">£847</div>
+                                    <div class="metric-label">Monthly Cost Reduction</div>
+                                </div>
+                            </div>
+                            <div class="performance-graph">
+                                <canvas id="performance-chart" width="600" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Choice Modal -->
+        <div class="choice-modal" id="choice-modal">
+            <div class="choice-content">
+                <div class="choice-header">
+                    <h3 class="choice-title">You Decide</h3>
+                    <div class="choice-scenario" id="choice-scenario"></div>
+                </div>
+                <div class="choice-options" id="choice-options">
+                    <!-- Dynamic choice buttons -->
+                </div>
+                <div class="choice-impact">
+                    <div class="impact-preview" id="impact-preview">
+                        <!-- Shows preview of each choice -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Transformation CTA -->
+    <section class="transformation-cta" id="transformation-cta" style="display: none;">
+        <div class="cta-container">
+            <div class="cta-background">
+                <div class="success-visualization"></div>
+            </div>
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Experience Your Own AI Transformation?</h2>
+                <div class="cta-subtitle">Join Sarah and 46 other strategic leaders who've transformed their daily reality</div>
+                
+                <div class="transformation-preview">
+                    <div class="preview-item">
+                        <div class="preview-metric">3.2 hours</div>
+                        <div class="preview-label">Daily time saved</div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-metric">£2.3M</div>
+                        <div class="preview-label">Annual value unlocked</div>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-metric">97.8%</div>
+                        <div class="preview-label">Process accuracy</div>
+                    </div>
+                </div>
+                
+                <div class="cta-actions">
+                    <button class="cta-primary" id="start-my-journey">
+                        <span class="btn-text">Start My AI Journey</span>
+                        <span class="btn-subtitle">Free 30-day transformation preview</span>
+                    </button>
+                    <button class="cta-secondary" id="see-all-stories">
+                        <span class="btn-text">Explore More Stories</span>
+                    </button>
+                </div>
+                
+                <div class="cta-trust">
+                    <div class="trust-badges">
+                        <div class="trust-badge">
+                            <span class="badge-icon">🔒</span>
+                            <span class="badge-text">Enterprise Security</span>
+                        </div>
+                        <div class="trust-badge">
+                            <span class="badge-icon">⚡</span>
+                            <span class="badge-text">48h Implementation</span>
+                        </div>
+                        <div class="trust-badge">
+                            <span class="badge-icon">📈</span>
+                            <span class="badge-text">Guaranteed ROI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Overlay Modal -->
+    <div class="tech-overlay" id="tech-overlay">
+        <div class="overlay-content">
+            <div class="overlay-header">
+                <h3 class="overlay-title">Enterprise AI Architecture</h3>
+                <button class="overlay-close" id="close-overlay">&times;</button>
+            </div>
+            <div class="overlay-body">
+                <div class="architecture-diagram">
+                    <div class="arch-layer">
+                        <h4>Neural Processing Layer</h4>
+                        <div class="arch-components">
+                            <div class="arch-component">
+                                <span class="component-name">Transformer Model</span>
+                                <span class="component-spec">175B parameters</span>
+                            </div>
+                            <div class="arch-component">
+                                <span class="component-name">NLP Engine</span>
+                                <span class="component-spec">99.7% accuracy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="arch-layer">
+                        <h4>Automation Engine</h4>
+                        <div class="arch-components">
+                            <div class="arch-component">
+                                <span class="component-name">Decision System</span>
+                                <span class="component-spec">Real-time processing</span>
+                            </div>
+                            <div class="arch-component">
+                                <span class="component-name">Integration Hub</span>
+                                <span class="component-spec">500+ connectors</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script-breakthrough.js"></script>
+</body>
+</html>

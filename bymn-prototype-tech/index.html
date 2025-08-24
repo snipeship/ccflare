@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>byMN.agency - Neural Network Infrastructure | Advanced AI Systems</title>
+    <meta name="description" content="Enterprise-grade artificial intelligence automation platform. Real-time neural processing, autonomous decision systems, advanced machine learning infrastructure.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles-tech.css">
+</head>
+<body>
+    <!-- System Boot Sequence -->
+    <div id="boot-sequence" class="boot-sequence">
+        <div class="terminal-boot">
+            <div class="boot-header">
+                <span class="system-name">byMN.NEURAL_OS v2.7.3</span>
+                <span class="timestamp" id="boot-timestamp"></span>
+            </div>
+            <div class="boot-logs">
+                <div class="log-line">
+                    <span class="log-timestamp">[00:00.001]</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-message">Initializing neural network infrastructure...</span>
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[00:00.127]</span>
+                    <span class="log-level success">OKAY</span>
+                    <span class="log-message">GPU clusters online: 847 CUDA cores active</span>
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[00:00.203]</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-message">Loading AI models: transformer.v4.2, diffusion.v3.8, rl_agent.v2.1</span>
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[00:00.445]</span>
+                    <span class="log-level success">OKAY</span>
+                    <span class="log-message">Memory allocated: 127.4GB VRAM, 512GB System RAM</span>
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[00:00.667]</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-message">Establishing secure quantum communication channels...</span>
+                </div>
+                <div class="log-line">
+                    <span class="log-timestamp">[00:00.891]</span>
+                    <span class="log-level success">OKAY</span>
+                    <span class="log-message">Neural pathways synchronized. System ready.</span>
+                </div>
+                <div class="log-line final-boot">
+                    <span class="log-timestamp">[00:01.002]</span>
+                    <span class="log-level system">SYSTEM</span>
+                    <span class="log-message access-granted">ACCESS GRANTED → NEURAL INTERFACE ACTIVE</span>
+                </div>
+            </div>
+            <div class="boot-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <span class="progress-text">Neural synchronization: <span id="progress-percent">0</span>%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-brackets">[</span>
+                <span class="logo-text">byMN</span>
+                <span class="logo-brackets">]</span>
+                <span class="logo-extension">.neural</span>
+            </div>
+            <div class="nav-right">
+                <div class="system-status">
+                    <div class="status-indicator online"></div>
+                    <span class="status-text">NEURAL_NET.ONLINE</span>
+                </div>
+                <div class="access-level">
+                    <span class="access-text">CLEARANCE_LEVEL:</span>
+                    <span class="access-value">ENTERPRISE</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Interface -->
+    <main class="main-interface">
+        <!-- Neural Command Interface -->
+        <section class="command-interface">
+            <div class="interface-container">
+                <div class="neural-grid">
+                    <!-- Live Neural Network Visualization -->
+                    <div class="neural-display">
+                        <div class="display-header">
+                            <h1 class="interface-title">
+                                <span class="title-prefix">$</span>
+                                <span class="title-main">Neural_Network_Infrastructure</span>
+                                <span class="cursor">|</span>
+                            </h1>
+                            <div class="system-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">GPU_UTIL:</span>
+                                    <span class="metric-value" id="gpu-util">78%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">THROUGHPUT:</span>
+                                    <span class="metric-value" id="throughput">2.4M/s</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">LATENCY:</span>
+                                    <span class="metric-value" id="latency">0.003ms</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Live Neural Network Canvas -->
+                        <div class="neural-canvas">
+                            <canvas id="neural-network" width="800" height="400"></canvas>
+                            <div class="canvas-overlay">
+                                <div class="layer-info">
+                                    <div class="layer">INPUT[784]</div>
+                                    <div class="layer">HIDDEN[512]</div>
+                                    <div class="layer">HIDDEN[256]</div>
+                                    <div class="layer">OUTPUT[10]</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Terminal Interface -->
+                    <div class="live-terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-controls">
+                                <div class="control minimize"></div>
+                                <div class="control maximize"></div>
+                                <div class="control close"></div>
+                            </div>
+                            <span class="terminal-title">byMN.AI_TERMINAL v3.2.1</span>
+                        </div>
+                        <div class="terminal-content">
+                            <div class="terminal-output" id="terminal-output">
+                                <div class="output-line">
+                                    <span class="prompt">admin@neural-cluster-01:~$</span>
+                                    <span class="command">show ai.models.status --verbose</span>
+                                </div>
+                                <div class="output-result">
+                                    <div class="result-line">MODEL: transformer_v4.2 | STATUS: ACTIVE | ACCURACY: 97.3%</div>
+                                    <div class="result-line">MODEL: diffusion_v3.8 | STATUS: TRAINING | EPOCH: 847/1000</div>
+                                    <div class="result-line">MODEL: reinforcement_agent | STATUS: OPTIMIZING | REWARD: +2.7k</div>
+                                </div>
+                                <div class="output-line">
+                                    <span class="prompt">admin@neural-cluster-01:~$</span>
+                                    <span class="command">monitor neural.activity --real-time</span>
+                                </div>
+                                <div class="output-result">
+                                    <div class="result-line success">✓ 2,847,392 neural pathways active</div>
+                                    <div class="result-line success">✓ Quantum entanglement channels: 127 pairs synchronized</div>
+                                    <div class="result-line info">→ Processing 4.7M decisions/second across 23 enterprise clients</div>
+                                </div>
+                                <div class="output-line current">
+                                    <span class="prompt">admin@neural-cluster-01:~$</span>
+                                    <span class="command-input" id="live-command"></span>
+                                    <span class="cursor">_</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Architecture Display -->
+                <div class="architecture-display">
+                    <div class="arch-header">
+                        <h2>SYSTEM.ARCHITECTURE</h2>
+                        <div class="arch-controls">
+                            <button class="arch-btn active" data-layer="neural">NEURAL</button>
+                            <button class="arch-btn" data-layer="compute">COMPUTE</button>
+                            <button class="arch-btn" data-layer="data">DATA</button>
+                        </div>
+                    </div>
+                    <div class="arch-content">
+                        <div class="arch-layer active" id="neural-layer">
+                            <div class="component-grid">
+                                <div class="component active">
+                                    <div class="component-name">TRANSFORMER_CORE</div>
+                                    <div class="component-status">PROCESSING</div>
+                                    <div class="component-metrics">
+                                        <span>Attention Heads: 64</span>
+                                        <span>Layers: 48</span>
+                                        <span>Parameters: 175B</span>
+                                    </div>
+                                </div>
+                                <div class="component">
+                                    <div class="component-name">DIFFUSION_ENGINE</div>
+                                    <div class="component-status">TRAINING</div>
+                                    <div class="component-metrics">
+                                        <span>Resolution: 1024x1024</span>
+                                        <span>Steps: 50</span>
+                                        <span>Guidance: 7.5</span>
+                                    </div>
+                                </div>
+                                <div class="component">
+                                    <div class="component-name">RL_AGENT_CLUSTER</div>
+                                    <div class="component-status">OPTIMIZING</div>
+                                    <div class="component-metrics">
+                                        <span>Episodes: 2.7M</span>
+                                        <span>Reward: +847k</span>
+                                        <span>Exploration: 0.15</span>
+                                    </div>
+                                </div>
+                                <div class="component">
+                                    <div class="component-name">QUANTUM_PROCESSOR</div>
+                                    <div class="component-status">ENTANGLED</div>
+                                    <div class="component-metrics">
+                                        <span>Qubits: 512</span>
+                                        <span>Fidelity: 99.7%</span>
+                                        <span>Decoherence: 0.003s</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="arch-layer" id="compute-layer">
+                            <div class="compute-visualization">
+                                <div class="datacenter">
+                                    <div class="rack active">
+                                        <div class="rack-label">GPU_CLUSTER_01</div>
+                                        <div class="servers">
+                                            <div class="server active"></div>
+                                            <div class="server active"></div>
+                                            <div class="server active"></div>
+                                            <div class="server"></div>
+                                        </div>
+                                    </div>
+                                    <div class="rack active">
+                                        <div class="rack-label">GPU_CLUSTER_02</div>
+                                        <div class="servers">
+                                            <div class="server active"></div>
+                                            <div class="server active"></div>
+                                            <div class="server"></div>
+                                            <div class="server"></div>
+                                        </div>
+                                    </div>
+                                    <div class="rack">
+                                        <div class="rack-label">QUANTUM_CORE</div>
+                                        <div class="servers quantum">
+                                            <div class="server quantum-unit active"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="arch-layer" id="data-layer">
+                            <div class="data-flow">
+                                <div class="data-stream">
+                                    <div class="stream-node">RAW_DATA</div>
+                                    <div class="stream-arrow">→</div>
+                                    <div class="stream-node">PREPROCESSING</div>
+                                    <div class="stream-arrow">→</div>
+                                    <div class="stream-node">FEATURE_EXTRACTION</div>
+                                    <div class="stream-arrow">→</div>
+                                    <div class="stream-node">NEURAL_PROCESSING</div>
+                                    <div class="stream-arrow">→</div>
+                                    <div class="stream-node">OPTIMIZATION</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live AI Demonstration -->
+        <section class="ai-demonstration">
+            <div class="demo-container">
+                <div class="demo-header">
+                    <h2 class="demo-title">LIVE_AI_EXECUTION</h2>
+                    <div class="demo-status">
+                        <div class="status-dot active"></div>
+                        <span>Real-time neural processing</span>
+                    </div>
+                </div>
+                
+                <div class="demo-grid">
+                    <!-- Code Execution Panel -->
+                    <div class="code-panel">
+                        <div class="panel-header">
+                            <span class="panel-title">neural_optimizer.py</span>
+                            <div class="execution-status running">EXECUTING</div>
+                        </div>
+                        <div class="code-content">
+<pre class="code-block"><span class="keyword">import</span> <span class="module">neural_net</span> <span class="keyword">as</span> <span class="variable">nn</span>
+<span class="keyword">from</span> <span class="module">quantum_core</span> <span class="keyword">import</span> <span class="function">QuantumProcessor</span>
+
+<span class="comment"># Initialize advanced neural architecture</span>
+<span class="variable">model</span> = <span class="function">nn.TransformerCore</span>(
+    <span class="parameter">layers</span>=<span class="number">48</span>,
+    <span class="parameter">attention_heads</span>=<span class="number">64</span>,
+    <span class="parameter">parameters</span>=<span class="number">175e9</span>
+)
+
+<span class="comment"># Quantum-enhanced optimization</span>
+<span class="variable">quantum</span> = <span class="function">QuantumProcessor</span>(<span class="parameter">qubits</span>=<span class="number">512</span>)
+<span class="variable">optimizer</span> = <span class="function">nn.QuantumAdam</span>(<span class="parameter">quantum_core</span>=<span class="variable">quantum</span>)
+
+<span class="keyword">for</span> <span class="variable">epoch</span> <span class="keyword">in</span> <span class="function">range</span>(<span class="number">∞</span>):
+    <span class="variable">loss</span> = <span class="variable">model</span>.<span class="function">forward</span>(<span class="variable">neural_input</span>)
+    <span class="variable">optimizer</span>.<span class="function">quantum_backprop</span>(<span class="variable">loss</span>)
+    
+    <span class="keyword">if</span> <span class="variable">loss</span> &lt; <span class="number">1e-10</span>:
+        <span class="function">print</span>(<span class="string">"Neural perfection achieved"</span>)
+        <span class="keyword">break</span></pre>
+                        </div>
+                        <div class="execution-output">
+                            <div class="output-line">Epoch 847: loss=2.47e-8, accuracy=99.97%</div>
+                            <div class="output-line">Quantum optimization: +23.4% efficiency gain</div>
+                            <div class="output-line success">Neural pathways synchronized</div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Metrics Dashboard -->
+                    <div class="metrics-dashboard">
+                        <div class="dashboard-header">
+                            <span class="dashboard-title">NEURAL_METRICS.REAL_TIME</span>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-name">THROUGHPUT</div>
+                                <div class="metric-value" id="live-throughput">2.47M</div>
+                                <div class="metric-unit">operations/sec</div>
+                                <div class="metric-graph">
+                                    <canvas id="throughput-graph" width="200" height="60"></canvas>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-name">ACCURACY</div>
+                                <div class="metric-value" id="live-accuracy">99.97</div>
+                                <div class="metric-unit">percent</div>
+                                <div class="metric-graph">
+                                    <canvas id="accuracy-graph" width="200" height="60"></canvas>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-name">QUANTUM_STATE</div>
+                                <div class="metric-value" id="quantum-state">|ψ⟩</div>
+                                <div class="metric-unit">entangled</div>
+                                <div class="quantum-viz">
+                                    <div class="qubit active"></div>
+                                    <div class="qubit active"></div>
+                                    <div class="qubit"></div>
+                                    <div class="qubit active"></div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-name">GPU_CLUSTERS</div>
+                                <div class="metric-value" id="gpu-clusters">847</div>
+                                <div class="metric-unit">cores active</div>
+                                <div class="cluster-viz">
+                                    <div class="gpu-core active"></div>
+                                    <div class="gpu-core active"></div>
+                                    <div class="gpu-core active"></div>
+                                    <div class="gpu-core"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Interface -->
+                <div class="api-interface">
+                    <div class="api-header">
+                        <h3>NEURAL_API.INTERFACE</h3>
+                        <div class="api-status online">API_ONLINE</div>
+                    </div>
+                    <div class="api-content">
+                        <div class="api-example">
+                            <div class="request-panel">
+                                <div class="request-header">REQUEST</div>
+                                <pre class="api-code"><span class="method">POST</span> <span class="endpoint">/api/v3/neural/process</span>
+<span class="header">Authorization:</span> Neural-Key xxxx-xxxx-xxxx
+<span class="header">Content-Type:</span> application/neural-json
+
+{
+  "<span class="json-key">input_data</span>": [<span class="json-value">matrix_784x1</span>],
+  "<span class="json-key">model</span>": "<span class="json-value">transformer_v4.2</span>",
+  "<span class="json-key">optimization</span>": "<span class="json-value">quantum_enhanced</span>",
+  "<span class="json-key">precision</span>": <span class="json-value">float64</span>
+}</pre>
+                            </div>
+                            <div class="response-panel">
+                                <div class="response-header">RESPONSE <span class="response-time">0.003ms</span></div>
+                                <pre class="api-code">{
+  "<span class="json-key">status</span>": "<span class="json-value success">neural_processed</span>",
+  "<span class="json-key">confidence</span>": <span class="json-value">0.9997</span>,
+  "<span class="json-key">prediction</span>": [<span class="json-value">class_7</span>],
+  "<span class="json-key">quantum_advantage</span>": "<span class="json-value">+23.4%</span>",
+  "<span class="json-key">processing_time</span>": "<span class="json-value">2.7ms</span>",
+  "<span class="json-key">neural_pathways</span>": <span class="json-value">2847392</span>
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Technical Specifications -->
+        <section class="technical-specs">
+            <div class="specs-container">
+                <div class="specs-header">
+                    <h2>TECHNICAL_SPECIFICATIONS</h2>
+                    <div class="classification">CLASSIFICATION: ENTERPRISE+</div>
+                </div>
+                
+                <div class="specs-grid">
+                    <div class="spec-category">
+                        <h3>NEURAL_ARCHITECTURE</h3>
+                        <div class="spec-items">
+                            <div class="spec-item">
+                                <span class="spec-key">Model Type:</span>
+                                <span class="spec-value">Transformer + Diffusion + RL Hybrid</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Parameters:</span>
+                                <span class="spec-value">175B+ trainable parameters</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Architecture:</span>
+                                <span class="spec-value">48-layer neural network, 64 attention heads</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Training Data:</span>
+                                <span class="spec-value">847TB multimodal dataset</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-category">
+                        <h3>COMPUTE_INFRASTRUCTURE</h3>
+                        <div class="spec-items">
+                            <div class="spec-item">
+                                <span class="spec-key">GPU Clusters:</span>
+                                <span class="spec-value">847 NVIDIA A100 80GB cores</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Memory:</span>
+                                <span class="spec-value">127.4GB VRAM, 512GB System RAM</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Quantum Core:</span>
+                                <span class="spec-value">512-qubit quantum processor</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Network:</span>
+                                <span class="spec-value">400Gbps InfiniBand interconnect</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-category">
+                        <h3>PERFORMANCE_METRICS</h3>
+                        <div class="spec-items">
+                            <div class="spec-item">
+                                <span class="spec-key">Throughput:</span>
+                                <span class="spec-value">2.47M operations/second</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Latency:</span>
+                                <span class="spec-value">0.003ms average response</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Accuracy:</span>
+                                <span class="spec-value">99.97% on benchmark datasets</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Uptime:</span>
+                                <span class="spec-value">99.99% SLA with quantum redundancy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-category">
+                        <h3>SECURITY_PROTOCOL</h3>
+                        <div class="spec-items">
+                            <div class="spec-item">
+                                <span class="spec-key">Encryption:</span>
+                                <span class="spec-value">Quantum-resistant AES-512</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Authentication:</span>
+                                <span class="spec-value">Multi-factor neural biometrics</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Isolation:</span>
+                                <span class="spec-value">Hardware-level neural sandbox</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-key">Compliance:</span>
+                                <span class="spec-value">SOC2, ISO27001, GDPR, HIPAA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Access Control -->
+        <section class="access-control">
+            <div class="access-container">
+                <div class="access-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-title">NEURAL_ACCESS_CONTROL</span>
+                        <div class="security-level">CLEARANCE_REQUIRED</div>
+                    </div>
+                    <div class="terminal-content">
+                        <div class="access-prompt">
+                            <div class="prompt-line">
+                                <span class="system-prompt">neural-auth@byMN:~$</span>
+                                <span class="prompt-text">request_access --enterprise --neural-integration</span>
+                            </div>
+                            <div class="access-info">
+                                <div class="info-line">→ Neural interface requires enterprise-grade clearance</div>
+                                <div class="info-line">→ Quantum-encrypted communication channels</div>
+                                <div class="info-line">→ Direct access to 175B parameter model</div>
+                                <div class="info-line warning">⚠ Advanced AI systems - qualified personnel only</div>
+                            </div>
+                            <div class="access-form">
+                                <div class="form-field">
+                                    <label>NEURAL_ID:</label>
+                                    <input type="text" placeholder="enterprise.neural.access.key" class="neural-input">
+                                </div>
+                                <div class="form-field">
+                                    <label>CLEARANCE_CODE:</label>
+                                    <input type="password" placeholder="quantum.encrypted.auth" class="neural-input">
+                                </div>
+                                <button class="neural-access-btn">
+                                    <span class="btn-text">INITIATE_NEURAL_HANDSHAKE</span>
+                                    <span class="btn-status">STANDBY</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Neural Footer -->
+    <footer class="neural-footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <div class="footer-logo">
+                        <span class="logo-brackets">[</span>
+                        <span class="logo-text">byMN</span>
+                        <span class="logo-brackets">]</span>
+                        <span class="logo-extension">.neural</span>
+                    </div>
+                    <div class="footer-description">
+                        Advanced artificial intelligence infrastructure for enterprise neural computing
+                    </div>
+                </div>
+                <div class="footer-right">
+                    <div class="system-info">
+                        <div class="info-item">
+                            <span class="info-label">SYSTEM_VERSION:</span>
+                            <span class="info-value">NEURAL_OS v2.7.3</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">NEURAL_UPTIME:</span>
+                            <span class="info-value" id="system-uptime">847d:12h:34m</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">QUANTUM_STATE:</span>
+                            <span class="info-value quantum">ENTANGLED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="copyright">
+                    © 2025 byMN Neural Systems. Quantum-enhanced AI infrastructure.
+                </div>
+                <div class="footer-status">
+                    <div class="status-indicator online"></div>
+                    <span>Neural networks operational</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="script-tech.js"></script>
+</body>
+</html>
