@@ -238,6 +238,7 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 			timestamp?: number;
 			payload?: unknown;
 			timings?: RequestData["timings"];
+			retryAttempt?: number;
 		},
 	): void {
 		this.requests.save({
@@ -252,6 +253,7 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 			errorMessage,
 			responseTime,
 			failoverAttempts,
+			retryAttempt: options?.retryAttempt,
 			usage,
 			timestamp: options?.timestamp,
 			payload: options?.payload,

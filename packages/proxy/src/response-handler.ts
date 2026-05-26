@@ -57,7 +57,7 @@ export async function forwardToClient(
 		timestamp,
 		upstreamRequestStartedAt,
 		responseHeadersReceivedAt,
-		retryAttempt, // Always 0 in new flow, but kept for message compatibility
+		retryAttempt,
 		failoverAttempts,
 		preExtractedModel,
 	} = options;

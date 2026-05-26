@@ -813,6 +813,7 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 				timestamp: startMessage.timestamp,
 				payload,
 				timings,
+				retryAttempt: startMessage.retryAttempt,
 			},
 		),
 	);
@@ -840,6 +841,7 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 		errorMessage: msg.error || null,
 		responseTimeMs: responseTime,
 		failoverAttempts: startMessage.failoverAttempts,
+		retryAttempt: startMessage.retryAttempt,
 		model: state.usage.model ?? null,
 		promptTokens: state.usage.inputTokens ?? null,
 		completionTokens: state.usage.outputTokens ?? null,

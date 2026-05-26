@@ -7,6 +7,47 @@ import type { ResolvedProxyContext } from "./proxy-types";
 const log = new Logger("ResponseProcessor");
 
 /**
+ * Determines whether an upstream response is a transient server-side error
+ * that the provider has explicitly marked as retryable via the
+ * `x-should-retry: true` header.
+ *
+ * Anthropic uses this for HTTP 529 ("Overloaded") and other transient 5xx
+ * conditions. Rate-limit responses (HTTP 429) follow the dedicated
+ * rate-limit handling path and are intentionally excluded here.
+ *
+ * @param response - The upstream response to inspect
+ * @returns true if the same account should be retried, false otherwise
+ */
+export function isRetryableUpstreamError(response: Response): boolean {
+	if (response.status < 500) {
+		return false;
+	}
+	return response.headers.get("x-should-retry") === "true";
+}
+
+/**
+ * Parses the upstream `retry-after` header, returning the wait time in
+ * milliseconds relative to "now". Returns `undefined` when the header is
+ * absent or unparseable.
+ *
+ * Per RFC 7231, `retry-after` can be either:
+ *   - a delta in seconds (integer or decimal), e.g. "30" or "0.5"
+ *   - an HTTP-date, e.g. "Wed, 21 Oct 2026 07:28:00 GMT"
+ *
+ * For HTTP-dates already in the past we return 0 (not a negative value) so
+ * callers can treat the return as a non-negative floor without extra checks.
+ */
+export function parseRetryAfter(response: Response): number | undefined {
+	const ra = response.headers.get("retry-after");
+	if (!ra) return undefined;
+	const seconds = Number(ra);
+	if (!Number.isNaN(seconds)) return seconds * 1000;
+	const date = new Date(ra).getTime();
+	if (!Number.isNaN(date)) return Math.max(0, date - Date.now());
+	return undefined;
+}
+
+/**
  * Handles rate limit response for an account
  * @param account - The rate-limited account
  * @param rateLimitInfo - Parsed rate limit information

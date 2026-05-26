@@ -30,6 +30,12 @@ export interface RequestData {
 	errorMessage: string | null;
 	responseTime: number;
 	failoverAttempts: number;
+	/**
+	 * Same-account retry count (independent of `failoverAttempts`, which
+	 * counts cross-account fallbacks). Optional to keep older worker
+	 * messages and tests source-compatible; defaults to 0 when omitted.
+	 */
+	retryAttempt?: number;
 	usage?: {
 		model?: string;
 		promptTokens?: number;
@@ -136,6 +142,7 @@ export class RequestRepository extends BaseRepository<RequestData> {
 					error_message = ?,
 					response_time_ms = ?,
 					failover_attempts = ?,
+					retry_attempt = ?,
 					model = ?,
 					prompt_tokens = ?,
 					completion_tokens = ?,
@@ -168,6 +175,7 @@ export class RequestRepository extends BaseRepository<RequestData> {
 					data.errorMessage,
 					data.responseTime,
 					data.failoverAttempts,
+					data.retryAttempt ?? 0,
 					usage?.model ?? null,
 					usage?.promptTokens ?? null,
 					usage?.completionTokens ?? null,

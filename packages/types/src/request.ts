@@ -97,6 +97,12 @@ export interface Request {
 	errorMessage: string | null;
 	responseTimeMs: number | null;
 	failoverAttempts: number;
+	/**
+	 * Same-account retry count surfaced from the `requests.retry_attempt`
+	 * column. Independent of `failoverAttempts`, which counts cross-account
+	 * fallbacks.
+	 */
+	retryAttempt: number;
 	model: string | null;
 	promptTokens: number | null;
 	completionTokens: number | null;
@@ -133,6 +139,12 @@ export interface RequestSummary {
 	errorMessage: string | null;
 	responseTimeMs: number | null;
 	failoverAttempts: number;
+	/**
+	 * Same-account retry count surfaced from the `requests.retry_attempt`
+	 * column. Independent of `failoverAttempts`, which counts cross-account
+	 * fallbacks.
+	 */
+	retryAttempt: number;
 	model: string | null;
 	promptTokens: number | null;
 	completionTokens: number | null;
@@ -220,6 +232,7 @@ export function toRequestSummary(request: Request): RequestSummary {
 		errorMessage: request.errorMessage,
 		responseTimeMs: request.responseTimeMs,
 		failoverAttempts: request.failoverAttempts,
+		retryAttempt: request.retryAttempt,
 		model: request.model ?? null,
 		promptTokens: request.promptTokens ?? null,
 		completionTokens: request.completionTokens ?? null,
@@ -266,6 +279,7 @@ export function isRequestSummary(value: unknown): value is RequestSummary {
 		isOptionalNullableString(value.errorMessage) &&
 		isOptionalNullableNumber(value.responseTimeMs) &&
 		isFiniteNumber(value.failoverAttempts) &&
+		isFiniteNumber(value.retryAttempt) &&
 		isNullableString(value.model) &&
 		isNullableNumber(value.promptTokens) &&
 		isNullableNumber(value.completionTokens) &&

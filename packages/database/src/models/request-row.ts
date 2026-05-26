@@ -17,6 +17,7 @@ export interface RequestRow {
 	error_message: string | null;
 	response_time_ms: number | null;
 	failover_attempts: number;
+	retry_attempt: number;
 	model: string | null;
 	prompt_tokens: number | null;
 	completion_tokens: number | null;
@@ -52,6 +53,7 @@ export function toRequest(row: RequestRow): Request {
 		errorMessage: row.error_message,
 		responseTimeMs: row.response_time_ms,
 		failoverAttempts: row.failover_attempts,
+		retryAttempt: row.retry_attempt,
 		model: row.model ?? null,
 		promptTokens: row.prompt_tokens ?? null,
 		completionTokens: row.completion_tokens ?? null,

@@ -105,6 +105,11 @@ function ensureRequestLinkageColumns(db: Database): void {
 		["proxy_overhead_ms", "INTEGER"],
 		["upstream_ttfb_ms", "INTEGER"],
 		["streaming_duration_ms", "INTEGER"],
+		// Counts same-account retries triggered by upstream `x-should-retry`
+		// responses (e.g. Anthropic 529 "Overloaded"). Default 0 so legacy
+		// rows are treated as "no retry happened" rather than NULL/unknown,
+		// which keeps `WHERE retry_attempt > 0` aggregations honest.
+		["retry_attempt", "INTEGER DEFAULT 0"],
 	] as const;
 
 	for (const [columnName, columnType] of requestColumns) {
@@ -318,6 +323,7 @@ function migrateRequestsTable(db: Database, columns: TableInfoRow[]): void {
 			error_message TEXT,
 			response_time_ms INTEGER,
 			failover_attempts INTEGER DEFAULT 0,
+			retry_attempt INTEGER DEFAULT 0,
 			model TEXT,
 			prompt_tokens INTEGER DEFAULT 0,
 			completion_tokens INTEGER DEFAULT 0,
@@ -345,12 +351,12 @@ function migrateRequestsTable(db: Database, columns: TableInfoRow[]): void {
 		INSERT INTO requests_v2 (
 			id, timestamp, method, path, provider, upstream_path, account_used,
 			status_code, success, error_message, response_time_ms,
-			failover_attempts, model, prompt_tokens, completion_tokens,
-			total_tokens, cost_usd, output_tokens_per_second, input_tokens,
-			cache_read_input_tokens, cache_creation_input_tokens, output_tokens,
-			reasoning_tokens, response_id, previous_response_id, response_chain_id,
-			client_session_id, ttft_ms, proxy_overhead_ms, upstream_ttfb_ms,
-			streaming_duration_ms
+			failover_attempts, retry_attempt, model, prompt_tokens,
+			completion_tokens, total_tokens, cost_usd, output_tokens_per_second,
+			input_tokens, cache_read_input_tokens, cache_creation_input_tokens,
+			output_tokens, reasoning_tokens, response_id, previous_response_id,
+			response_chain_id, client_session_id, ttft_ms, proxy_overhead_ms,
+			upstream_ttfb_ms, streaming_duration_ms
 		)
 		SELECT
 			id,
@@ -365,6 +371,7 @@ function migrateRequestsTable(db: Database, columns: TableInfoRow[]): void {
 			${columnOr(columns, "error_message", "NULL")},
 			${columnOr(columns, "response_time_ms", "NULL")},
 			COALESCE(${columnOr(columns, "failover_attempts", "NULL")}, 0),
+			COALESCE(${columnOr(columns, "retry_attempt", "NULL")}, 0),
 			${columnOr(columns, "model", "NULL")},
 			COALESCE(${columnOr(columns, "prompt_tokens", "NULL")}, 0),
 			COALESCE(${columnOr(columns, "completion_tokens", "NULL")}, 0),
@@ -522,6 +529,7 @@ export function ensureSchema(db: Database): void {
 			error_message TEXT,
 			response_time_ms INTEGER,
 			failover_attempts INTEGER DEFAULT 0,
+			retry_attempt INTEGER DEFAULT 0,
 			model TEXT,
 			prompt_tokens INTEGER DEFAULT 0,
 			completion_tokens INTEGER DEFAULT 0,
