@@ -88,4 +88,41 @@ describe("AnthropicProvider", () => {
 			remaining: 17,
 		});
 	});
+
+	it("does not bench an account that succeeds while over its limit", () => {
+		// 200 response whose primary limit shows "rejected": the account is still
+		// serving (e.g. via overage), so it must not be marked rate-limited.
+		const response = new Response("{}", {
+			status: 200,
+			headers: {
+				"anthropic-ratelimit-unified-status": "rejected",
+				"anthropic-ratelimit-unified-reset": String(
+					Math.floor((Date.now() + 3 * 3600_000) / 1000),
+				),
+			},
+		});
+
+		expect(provider.parseRateLimit(response).isRateLimited).toBe(false);
+	});
+
+	it("uses a short cooldown (not the multi-hour reset) when overage is available", () => {
+		// A 429 at the limit boundary while overage is allowed is transient — the
+		// account can still serve. We must not bench it until the primary reset.
+		const primaryResetSeconds = Math.floor((Date.now() + 3 * 3600_000) / 1000);
+		const response = new Response("{}", {
+			status: 429,
+			headers: {
+				"anthropic-ratelimit-unified-status": "rejected",
+				"anthropic-ratelimit-unified-reset": String(primaryResetSeconds),
+				"anthropic-ratelimit-unified-overage-status": "allowed",
+			},
+		});
+
+		const info = provider.parseRateLimit(response);
+		expect(info.isRateLimited).toBe(true);
+		// Cooldown is a short window from now, far below the multi-hour reset.
+		expect(info.resetTime).toBeGreaterThan(Date.now());
+		expect(info.resetTime).toBeLessThan(Date.now() + 5 * 60_000);
+		expect(info.resetTime).toBeLessThan(primaryResetSeconds * 1000);
+	});
 });

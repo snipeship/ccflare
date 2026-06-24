@@ -6,6 +6,7 @@ import type {
 	RequestMeta,
 	StrategyStore,
 } from "@ccflare/types";
+import { isInRefreshBackoff } from "../handlers/refresh-backoff";
 
 export class SessionStrategy implements LoadBalancingStrategy {
 	private sessionDurationMs: number;
@@ -20,6 +21,19 @@ export class SessionStrategy implements LoadBalancingStrategy {
 
 	initialize(store: StrategyStore): void {
 		this.store = store;
+	}
+
+	/**
+	 * An account is usable only if it is available (not paused / rate-limited)
+	 * AND its OAuth token refresh is not currently in a failure backoff window.
+	 * The refresh-backoff check makes selection skip an account whose token
+	 * cannot be refreshed, so requests fail over to a healthy account and return
+	 * automatically once the backoff clears.
+	 */
+	private isUsable(account: Account, now: number): boolean {
+		return (
+			isAccountAvailable(account, now) && !isInRefreshBackoff(account.id, now)
+		);
 	}
 
 	private resetSessionIfExpired(account: Account): void {
@@ -64,8 +78,8 @@ export class SessionStrategy implements LoadBalancingStrategy {
 			}
 		}
 
-		// If we have an active account and it's available, use it exclusively
-		if (activeAccount && isAccountAvailable(activeAccount, now)) {
+		// If we have an active account and it's usable, use it exclusively
+		if (activeAccount && this.isUsable(activeAccount, now)) {
 			// Reset session if expired (shouldn't happen but just in case)
 			this.resetSessionIfExpired(activeAccount);
 			this.log.info(
@@ -73,14 +87,14 @@ export class SessionStrategy implements LoadBalancingStrategy {
 			);
 			// Return active account first, then others as fallback
 			const others = accounts.filter(
-				(a) => a.id !== activeAccount.id && isAccountAvailable(a, now),
+				(a) => a.id !== activeAccount.id && this.isUsable(a, now),
 			);
 			return [activeAccount, ...others];
 		}
 
-		// No active session or active account is rate limited
-		// Filter available accounts
-		const available = accounts.filter((a) => isAccountAvailable(a, now));
+		// No active session, or active account is rate-limited / in refresh backoff.
+		// Filter usable accounts.
+		const available = accounts.filter((a) => this.isUsable(a, now));
 
 		if (available.length === 0) return [];
 

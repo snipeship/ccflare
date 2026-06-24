@@ -126,4 +126,26 @@ describe("processProxyResponse", () => {
 			"updateAccountRateLimitMeta",
 		]);
 	});
+
+	it("marks the account rate-limited even when no reset time is provided", () => {
+		const account = createAccount();
+		const { ctx, calls, flush } = createContext({
+			isRateLimited: true,
+			statusHeader: "rate_limited",
+			resetTime: null,
+			remaining: 0,
+		});
+
+		const isRateLimited = processProxyResponse(
+			new Response("rate limited", { status: 429 }),
+			account,
+			ctx,
+		);
+		flush();
+
+		// Without a reset time we still mark the account so requests fail over
+		// to a healthy account instead of sticking to the rate-limited one.
+		expect(isRateLimited).toBe(true);
+		expect(calls).toContain("markAccountRateLimited");
+	});
 });

@@ -17,6 +17,12 @@ const HARD_LIMIT_STATUSES = new Set([
 
 // Soft warning statuses that should not block account usage
 const _SOFT_WARNING_STATUSES = new Set(["allowed_warning", "queueing_soft"]);
+
+// When overage is available Anthropic keeps serving requests beyond the primary
+// (e.g. 5-hour) limit. A rate-limit hit is then transient, so we apply a short
+// cooldown instead of benching the account until the multi-hour primary reset.
+const OVERAGE_COOLDOWN_MS = 60_000; // 60 seconds
+
 const PROVIDER_NAME = "anthropic" as const;
 const DEFAULT_BASE_URL = getProviderDefaultBaseUrl(PROVIDER_NAME);
 
@@ -107,14 +113,27 @@ export class AnthropicProvider extends BaseProvider {
 		const remainingHeader = response.headers.get(
 			"anthropic-ratelimit-unified-remaining",
 		);
+		// Overage lets the account keep serving past its primary limit.
+		const overageAvailable =
+			response.headers.get("anthropic-ratelimit-unified-overage-status") ===
+			"allowed";
 
 		if (statusHeader || resetHeader) {
-			const resetTime = resetHeader ? Number(resetHeader) * 1000 : undefined; // Convert to ms
 			const remaining = remainingHeader ? Number(remainingHeader) : undefined;
 
 			// Only mark as rate limited for hard limit statuses or 429
 			const isRateLimited =
 				HARD_LIMIT_STATUSES.has(statusHeader || "") || response.status === 429;
+
+			// If overage is available, the multi-hour primary-limit reset is not a
+			// real lockout — the account can still serve. Use a short cooldown so it
+			// fails over briefly and is retried, rather than being benched for hours.
+			const resetTime =
+				isRateLimited && overageAvailable
+					? Date.now() + OVERAGE_COOLDOWN_MS
+					: resetHeader
+						? Number(resetHeader) * 1000 // Convert to ms
+						: undefined;
 
 			return {
 				isRateLimited,
@@ -130,9 +149,10 @@ export class AnthropicProvider extends BaseProvider {
 		}
 
 		const rateLimitReset = response.headers.get("x-ratelimit-reset");
-		const resetTime = rateLimitReset
-			? parseInt(rateLimitReset, 10) * 1000
-			: Date.now() + 60000; // Default to 1 minute
+		const resetTime =
+			overageAvailable || !rateLimitReset
+				? Date.now() + OVERAGE_COOLDOWN_MS // short cooldown (also the 1-min default)
+				: parseInt(rateLimitReset, 10) * 1000;
 
 		return {
 			isRateLimited: true,
