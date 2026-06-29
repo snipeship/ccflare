@@ -6,6 +6,7 @@ import {
 import type { Account, HttpMethod } from "@ccflare/types";
 import { trackProxyBackgroundTask } from "./background-tasks";
 import type { ResolvedProxyContext } from "./handlers";
+import { teeStream } from "./stream-tee";
 import type { ChunkMessage, EndMessage, StartMessage } from "./worker-messages";
 
 /**
@@ -109,52 +110,53 @@ export async function forwardToClient(
 	});
 
 	/*********************************************************************
-	 *  STREAMING RESPONSES — tee with Response.clone() and send chunks
+	 *  STREAMING RESPONSES — forward chunks while tracking analytics inline
 	 *********************************************************************/
 	if (isStream && response.body) {
-		// Clone response once for background consumption.
-		const analyticsClone = response.clone();
+		let streamEnded = false;
+		const sendEnd = (success: boolean, error?: string) => {
+			if (streamEnded) return;
+			streamEnded = true;
+			const endMsg: EndMessage = {
+				type: "end",
+				requestId,
+				preExtractedModel,
+				success,
+				...(error ? { error } : {}),
+			};
+			ctx.usageWorker.postMessage(endMsg);
+		};
 
-		const backgroundTask = (async () => {
-			try {
-				const reader = analyticsClone.body?.getReader();
-				if (!reader) return; // Safety check
-				// eslint-disable-next-line no-constant-condition
-				while (true) {
-					const { value, done } = await reader.read();
-					if (done) break;
-					if (value) {
-						const chunkMsg: ChunkMessage = {
-							type: "chunk",
-							requestId,
-							data: value,
-						};
-						ctx.usageWorker.postMessage(chunkMsg);
-					}
-				}
-				// Finished without errors
-				const endMsg: EndMessage = {
-					type: "end",
+		const trackedBody = teeStream(response.body, {
+			maxBytes: 0,
+			onChunk(value) {
+				const chunkMsg: ChunkMessage = {
+					type: "chunk",
 					requestId,
-					preExtractedModel,
-					success: isExpectedResponse(path, analyticsClone),
+					data: value,
 				};
-				ctx.usageWorker.postMessage(endMsg);
-			} catch (err) {
-				const endMsg: EndMessage = {
-					type: "end",
-					requestId,
-					preExtractedModel,
-					success: false,
-					error: (err as Error).message,
-				};
-				ctx.usageWorker.postMessage(endMsg);
-			}
-		})();
-		trackProxyBackgroundTask(backgroundTask);
+				ctx.usageWorker.postMessage(chunkMsg);
+			},
+			onClose() {
+				sendEnd(isExpectedResponse(path, response));
+			},
+			onError(err) {
+				sendEnd(false, err.message);
+			},
+			onCancel(reason) {
+				const message =
+					reason instanceof Error
+						? reason.message
+						: `Stream cancelled${reason ? `: ${String(reason)}` : ""}`;
+				sendEnd(false, message);
+			},
+		});
 
-		// Return the sanitized response
-		return response;
+		return new Response(trackedBody, {
+			status: response.status,
+			statusText: response.statusText,
+			headers: response.headers,
+		});
 	}
 
 	/*********************************************************************
