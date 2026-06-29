@@ -421,8 +421,6 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 		}
 
 		this.closed = true;
-		// Ensure all write operations are flushed before closing
-		this.db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
 		this.db.close();
 	}
 

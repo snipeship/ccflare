@@ -95,9 +95,13 @@ const MAX_BUFFER_SIZE =
 const TIMEOUT_MS = Number(
 	process.env.CF_STREAM_TIMEOUT_MS || TIME_CONSTANTS.STREAM_TIMEOUT_DEFAULT,
 );
-// Hard cap on payload retention bytes per request (default: 2MB)
-const MAX_PAYLOAD_BYTES =
-	Number(process.env.CF_MAX_PAYLOAD_BYTES || 0) || 2 * 1024 * 1024;
+const DEFAULT_MAX_PAYLOAD_BYTES = 64 * 1024;
+// Hard cap on retained payload body bytes per request/response body. Set
+// CF_MAX_PAYLOAD_BYTES=0 to omit persisted bodies while still recording
+// request metadata and usage.
+const MAX_PAYLOAD_BYTES = parseMaxPayloadBytes(
+	process.env.CF_MAX_PAYLOAD_BYTES,
+);
 // Hard cap on concurrent tracked requests in the worker
 const MAX_TRACKED_REQUESTS =
 	Number(process.env.CF_MAX_TRACKED_REQUESTS || 0) || 100;
@@ -111,6 +115,41 @@ const TOKEN_CURVE_MAX_SAMPLES = Math.max(
 );
 let cleanupIntervalId: Timer | null = null;
 let messageProcessingQueue: Promise<void> = Promise.resolve();
+
+function parseMaxPayloadBytes(value: string | undefined): number {
+	if (value === undefined || value.trim() === "") {
+		return DEFAULT_MAX_PAYLOAD_BYTES;
+	}
+
+	const parsed = Number(value);
+	if (!Number.isFinite(parsed) || parsed < 0) {
+		return DEFAULT_MAX_PAYLOAD_BYTES;
+	}
+
+	return Math.floor(parsed);
+}
+
+export function capStoredBase64Body(
+	body: string | null,
+	maxBytes = MAX_PAYLOAD_BYTES,
+): string | null {
+	if (!body) {
+		return body;
+	}
+	if (maxBytes <= 0) {
+		return null;
+	}
+
+	const decodedBytes = Buffer.byteLength(body, "base64");
+	if (decodedBytes <= maxBytes) {
+		return body;
+	}
+
+	return Buffer.from(
+		`[ccflare payload omitted: decoded body was ${decodedBytes} bytes, cap is ${maxBytes} bytes]`,
+		"utf-8",
+	).toString("base64");
+}
 
 // Check if a request should be logged
 function shouldLogRequest(path: string, status: number): boolean {
@@ -735,17 +774,18 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 		),
 	};
 
-	const payload: RequestPayload = {
+	const rawResponse = {
+		status: startMessage.responseStatus,
+		headers: startMessage.responseHeaders,
+		body: responseBody,
+	};
+	const rawPayloadForLinkage: RequestPayload = {
 		id: startMessage.requestId,
 		request: {
 			headers: startMessage.requestHeaders,
 			body: startMessage.requestBody,
 		},
-		response: {
-			status: startMessage.responseStatus,
-			headers: startMessage.responseHeaders,
-			body: responseBody,
-		},
+		response: rawResponse,
 		meta: {
 			trace: {
 				timestamp: startMessage.timestamp,
@@ -769,9 +809,20 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 			},
 		},
 	};
-	const linkage = extractRequestLinkageFromPayload(payload);
+	const linkage = extractRequestLinkageFromPayload(rawPayloadForLinkage);
 	const clientSessionId =
 		linkage.clientSessionId ?? state.clientSessionId ?? null;
+	const payload: RequestPayload = {
+		...rawPayloadForLinkage,
+		request: {
+			...rawPayloadForLinkage.request,
+			body: capStoredBase64Body(rawPayloadForLinkage.request.body),
+		},
+		response: {
+			...rawResponse,
+			body: capStoredBase64Body(rawResponse.body),
+		},
+	};
 	payload.meta.trace.responseId = linkage.responseId;
 	payload.meta.trace.previousResponseId = linkage.previousResponseId;
 	payload.meta.trace.clientSessionId = clientSessionId;
