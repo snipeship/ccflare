@@ -10,6 +10,7 @@ export function teeStream(
 		onChunk?: (chunk: Uint8Array) => void;
 		onClose?: (buffered: Uint8Array[]) => void;
 		onError?: (error: Error) => void;
+		onCancel?: (reason: unknown) => void;
 		maxBytes?: number; // Max bytes to buffer (default: 1MB)
 	} = {},
 ): ReadableStream<Uint8Array> {
@@ -17,6 +18,7 @@ export function teeStream(
 		onChunk,
 		onClose,
 		onError,
+		onCancel,
 		maxBytes = BUFFER_SIZES.STREAM_TEE_MAX_BYTES,
 	} = options;
 	const reader = upstream.getReader();
@@ -61,6 +63,7 @@ export function teeStream(
 		},
 
 		cancel(reason) {
+			onCancel?.(reason);
 			return reader.cancel(reason);
 		},
 	});

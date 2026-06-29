@@ -4,7 +4,10 @@ import { waitForProxyBackgroundTasks } from "./background-tasks";
 import type { ResolvedProxyContext } from "./handlers";
 import { forwardToClient } from "./response-handler";
 
-function createResolvedProxyContext(messages: unknown[]): ResolvedProxyContext {
+function createResolvedProxyContext(
+	messages: unknown[],
+	options: { isStreaming?: boolean } = {},
+): ResolvedProxyContext {
 	return {
 		provider: {
 			name: "openai",
@@ -25,7 +28,7 @@ function createResolvedProxyContext(messages: unknown[]): ResolvedProxyContext {
 				return null;
 			},
 			isStreamingResponse() {
-				return false;
+				return options.isStreaming === true;
 			},
 		},
 		providerName: "openai",
@@ -96,6 +99,59 @@ describe("forwardToClient", () => {
 				message.type === "end",
 		) as { preExtractedModel?: string } | undefined;
 
+		expect(endMessage?.preExtractedModel).toBe("claude-sonnet-4");
+	});
+
+	it("tracks streaming chunks on the client response body without cloning", async () => {
+		const messages: unknown[] = [];
+		const encoder = new TextEncoder();
+		const upstreamBody = new ReadableStream<Uint8Array>({
+			start(controller) {
+				controller.enqueue(encoder.encode("data: one\n\n"));
+				controller.enqueue(encoder.encode("data: two\n\n"));
+				controller.close();
+			},
+		});
+
+		const response = await forwardToClient(
+			{
+				requestId: "req-stream",
+				method: "POST",
+				path: "/v1/anthropic/messages",
+				account: null,
+				requestHeaders: new Headers({ "content-type": "application/json" }),
+				requestBody: null,
+				response: new Response(upstreamBody, {
+					status: 200,
+					headers: { "content-type": "text/event-stream; charset=utf-8" },
+				}),
+				timestamp: Date.now(),
+				retryAttempt: 0,
+				failoverAttempts: 0,
+				preExtractedModel: "claude-sonnet-4",
+			},
+			createResolvedProxyContext(messages, { isStreaming: true }),
+		);
+
+		await expect(response.text()).resolves.toBe("data: one\n\ndata: two\n\n");
+
+		const chunkMessages = messages.filter(
+			(message) =>
+				typeof message === "object" &&
+				message !== null &&
+				"type" in message &&
+				message.type === "chunk",
+		);
+		const endMessage = messages.find(
+			(message) =>
+				typeof message === "object" &&
+				message !== null &&
+				"type" in message &&
+				message.type === "end",
+		) as { success?: boolean; preExtractedModel?: string } | undefined;
+
+		expect(chunkMessages).toHaveLength(2);
+		expect(endMessage?.success).toBe(true);
 		expect(endMessage?.preExtractedModel).toBe("claude-sonnet-4");
 	});
 });

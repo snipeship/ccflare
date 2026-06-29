@@ -117,6 +117,7 @@ These environment variables are not stored in the configuration file and must be
 | `ccflare_DEBUG` | Enable debug mode with console output | - | `ccflare_DEBUG=1` |
 | `ccflare_DB_PATH` | Custom database file path | Platform-specific | `ccflare_DB_PATH=/var/lib/ccflare/db.sqlite` |
 | `CF_PRICING_REFRESH_HOURS` | Hours between pricing data refreshes | `24` | `CF_PRICING_REFRESH_HOURS=12` |
+| `CF_MAX_PAYLOAD_BYTES` | Maximum retained bytes per stored request/response body; use `0` to omit bodies | `65536` | `CF_MAX_PAYLOAD_BYTES=262144` |
 | `CF_STREAM_USAGE_BUFFER_KB` | Stream usage buffer size in KB | `64` | `CF_STREAM_USAGE_BUFFER_KB=128` |
 | `CF_STREAM_TIMEOUT_MS` | Stream processing timeout in milliseconds | `60000` (1 minute) | `CF_STREAM_TIMEOUT_MS=120000` |
 

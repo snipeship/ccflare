@@ -22,12 +22,9 @@ export function runStartupMaintenance(
 		log.error(`Startup cleanup error: ${err}`);
 	}
 
-	try {
-		dbOps.compact();
-		log.info("Database compacted at startup");
-	} catch (err) {
-		log.error(`Database compaction error: ${err}`);
-	}
+	log.info(
+		"Skipping startup database compaction; run manual compaction during idle time",
+	);
 
 	return () => {};
 }

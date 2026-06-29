@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+	capStoredBase64Body,
 	createRequestState,
 	processStreamChunk,
 } from "./post-processor.worker";
@@ -155,5 +156,29 @@ describe("processStreamChunk", () => {
 		});
 		expect(state.firstTokenTimestamp).toBeNumber();
 		expect(state.lastTokenTimestamp).toBeNumber();
+	});
+});
+
+describe("capStoredBase64Body", () => {
+	it("keeps bodies under the cap unchanged", () => {
+		const body = Buffer.from("small body", "utf-8").toString("base64");
+
+		expect(capStoredBase64Body(body, 64)).toBe(body);
+	});
+
+	it("replaces bodies over the cap with a small placeholder", () => {
+		const body = Buffer.from("x".repeat(128), "utf-8").toString("base64");
+		const capped = capStoredBase64Body(body, 64);
+
+		expect(capped).not.toBe(body);
+		expect(Buffer.from(capped ?? "", "base64").toString("utf-8")).toContain(
+			"payload omitted",
+		);
+	});
+
+	it("omits bodies when the cap is zero", () => {
+		const body = Buffer.from("body", "utf-8").toString("base64");
+
+		expect(capStoredBase64Body(body, 0)).toBeNull();
 	});
 });
