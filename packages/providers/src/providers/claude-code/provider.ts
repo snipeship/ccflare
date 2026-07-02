@@ -60,6 +60,17 @@ export class ClaudeCodeProvider extends AnthropicProvider {
 
 		if (account?.access_token) {
 			newHeaders.set("Authorization", `Bearer ${account.access_token}`);
+
+			// OAuth Bearer tokens require this beta flag or Anthropic rejects
+			// the request as unauthenticated for some models (observed: haiku
+			// works without it, sonnet does not). Merge with any beta value
+			// already on the request rather than clobbering it.
+			const existingBeta = newHeaders.get("anthropic-beta");
+			const betas = new Set(
+				existingBeta ? existingBeta.split(",").map((b) => b.trim()) : [],
+			);
+			betas.add("oauth-2025-04-20");
+			newHeaders.set("anthropic-beta", Array.from(betas).join(","));
 		}
 
 		// Remove api_key header -- Claude Code uses OAuth Bearer tokens
