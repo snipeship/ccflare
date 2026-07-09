@@ -2,13 +2,15 @@ import { ServiceUnavailableError, TokenRefreshError } from "@ccflare/core";
 import { Logger } from "@ccflare/logger";
 import type { TokenRefreshResult } from "@ccflare/providers";
 import type { Account } from "@ccflare/types";
-import { TOKEN_REFRESH_BACKOFF_MS, TOKEN_SAFETY_WINDOW_MS } from "../constants";
+import { TOKEN_SAFETY_WINDOW_MS } from "../constants";
 import { ERROR_MESSAGES, type ResolvedProxyContext } from "./proxy-types";
+import {
+	clearRefreshFailure,
+	isInRefreshBackoff,
+	recordRefreshFailure,
+} from "./refresh-backoff";
 
 const log = new Logger("TokenManager");
-
-// Track refresh failures for backoff
-const refreshFailures = new Map<string, number>();
 
 /**
  * Safely refreshes an access token with deduplication
@@ -23,8 +25,7 @@ export async function refreshAccessTokenSafe(
 	ctx: ResolvedProxyContext,
 ): Promise<string> {
 	// Check for recent refresh failures and implement backoff
-	const lastFailure = refreshFailures.get(account.id);
-	if (lastFailure && Date.now() - lastFailure < TOKEN_REFRESH_BACKOFF_MS) {
+	if (isInRefreshBackoff(account.id)) {
 		log.warn(`Account ${account.name} is in refresh backoff period`);
 		throw new ServiceUnavailableError(
 			`Token refresh for account ${account.name} is in backoff period after recent failure`,
@@ -66,14 +67,14 @@ export async function refreshAccessTokenSafe(
 				account.last_used = Date.now();
 
 				// Clear any previous failure record on successful refresh
-				refreshFailures.delete(account.id);
+				clearRefreshFailure(account.id);
 
 				log.info(`Successfully refreshed token for account: ${account.name}`);
 				return result.accessToken;
 			})
 			.catch((error) => {
 				// Record the failure timestamp for backoff
-				refreshFailures.set(account.id, Date.now());
+				recordRefreshFailure(account.id);
 				log.error(`Token refresh failed for account ${account.name}`, error);
 				throw new TokenRefreshError(account.id, error as Error);
 			})

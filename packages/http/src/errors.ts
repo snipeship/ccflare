@@ -55,6 +55,7 @@ export function getErrorType(error: unknown): ErrorType {
 		if (
 			message.includes("network") ||
 			message.includes("fetch failed") ||
+			message.includes("failed to fetch") ||
 			message.includes("connection") ||
 			message.includes("econnrefused")
 		) {

@@ -1,3 +1,4 @@
+import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
 	useCleanupNow,
@@ -5,6 +6,7 @@ import {
 	useRetention,
 	useSetRetention,
 } from "../../hooks/queries";
+import { useApiError } from "../../hooks/useApiError";
 import { Button } from "../ui/button";
 import {
 	Card,
@@ -16,6 +18,7 @@ import {
 import { Input } from "../ui/input";
 
 export function DataRetentionCard() {
+	const { formatError } = useApiError();
 	const { data, isLoading } = useRetention();
 	const setRetention = useSetRetention();
 	const cleanupNow = useCleanupNow();
@@ -116,7 +119,7 @@ export function DataRetentionCard() {
 						onClick={() => cleanupNow.mutate()}
 						disabled={cleanupNow.isPending}
 					>
-						Clean up now
+						{cleanupNow.isPending ? "Cleaning up..." : "Clean up now"}
 					</Button>
 					<Button
 						variant="outline"
@@ -125,10 +128,20 @@ export function DataRetentionCard() {
 						onClick={() => compactDb.mutate()}
 						disabled={compactDb.isPending}
 					>
-						Compact database
+						{compactDb.isPending ? "Compacting..." : "Compact database"}
 					</Button>
 				</div>
+				<p className="text-xs text-muted-foreground">
+					Compacting a large database can take a while and may briefly pause
+					request handling while it runs.
+				</p>
 
+				{cleanupNow.isError && (
+					<div className="flex items-center gap-2 text-xs text-destructive">
+						<AlertCircle className="h-3 w-3" />
+						{formatError(cleanupNow.error)}
+					</div>
+				)}
 				{cleanupNow.data && (
 					<p className="text-xs text-muted-foreground">
 						Removed {cleanupNow.data.removedRequests} requests and{" "}
@@ -137,6 +150,12 @@ export function DataRetentionCard() {
 					</p>
 				)}
 
+				{compactDb.isError && (
+					<div className="flex items-center gap-2 text-xs text-destructive">
+						<AlertCircle className="h-3 w-3" />
+						{formatError(compactDb.error)}
+					</div>
+				)}
 				{compactDb.isSuccess && (
 					<p className="text-xs text-muted-foreground">
 						Database compacted. File size should reduce on disk.

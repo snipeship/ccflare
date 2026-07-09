@@ -24,6 +24,10 @@ import type {
 import { isLogEvent, parseLogStreamEvent } from "@ccflare/types";
 import { API_LIMITS, API_TIMEOUT } from "./constants";
 
+// Cleanup/compact run a synchronous VACUUM on a single-threaded server and can
+// legitimately take much longer than the default API_TIMEOUT on a large database.
+const MAINTENANCE_TIMEOUT_MS = 5 * 60 * 1000;
+
 class API extends HttpClient {
 	constructor() {
 		super({
@@ -293,6 +297,8 @@ class API extends HttpClient {
 	async cleanupNow(): Promise<CleanupResponse> {
 		const result = await this.postJson<MutationResult<CleanupResponse>>(
 			"/api/maintenance/cleanup",
+			undefined,
+			{ timeout: MAINTENANCE_TIMEOUT_MS },
 		);
 		return (
 			result.data ?? { removedRequests: 0, removedPayloads: 0, cutoffIso: "" }
@@ -300,7 +306,9 @@ class API extends HttpClient {
 	}
 
 	async compactDb(): Promise<void> {
-		await this.postJson("/api/maintenance/compact");
+		await this.postJson("/api/maintenance/compact", undefined, {
+			timeout: MAINTENANCE_TIMEOUT_MS,
+		});
 	}
 }
 

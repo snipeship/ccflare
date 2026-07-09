@@ -2,6 +2,7 @@ import { logError, RateLimitError } from "@ccflare/core";
 import { Logger } from "@ccflare/logger";
 import type { RateLimitInfo } from "@ccflare/providers";
 import type { Account } from "@ccflare/types";
+import { DEFAULT_RATE_LIMIT_COOLDOWN_MS } from "../constants";
 import type { ResolvedProxyContext } from "./proxy-types";
 
 const log = new Logger("ResponseProcessor");
@@ -17,22 +18,25 @@ export function handleRateLimitResponse(
 	rateLimitInfo: RateLimitInfo,
 	ctx: ResolvedProxyContext,
 ): void {
-	if (!rateLimitInfo.resetTime) return;
+	// Use the upstream-provided reset time when available; otherwise fall back to
+	// a default cooldown so the account is still marked unavailable and requests
+	// fail over instead of sticking to a rate-limited account.
+	const resetTime =
+		rateLimitInfo.resetTime ?? Date.now() + DEFAULT_RATE_LIMIT_COOLDOWN_MS;
 
 	log.warn(
 		`Account ${account.name} rate-limited until ${new Date(
-			rateLimitInfo.resetTime,
+			resetTime,
 		).toISOString()}`,
 	);
 
-	const resetTime = rateLimitInfo.resetTime;
 	ctx.asyncWriter.enqueue(() =>
 		ctx.dbOps.markAccountRateLimited(account.id, resetTime),
 	);
 
 	const rateLimitError = new RateLimitError(
 		account.id,
-		rateLimitInfo.resetTime,
+		resetTime,
 		rateLimitInfo.remaining,
 	);
 	logError(rateLimitError, log);
