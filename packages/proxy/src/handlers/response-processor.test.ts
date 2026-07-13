@@ -131,9 +131,6 @@ describe("processProxyResponse", () => {
 		const account = createAccount();
 		const { ctx, calls, flush } = createContext({
 			isRateLimited: false,
-			statusHeader: null,
-			resetTime: null,
-			remaining: null,
 		});
 
 		const isRateLimited = processProxyResponse(

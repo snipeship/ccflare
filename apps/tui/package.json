@@ -8,9 +8,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "bun run src/main.ts",
-		"build": "bun build src/main.ts --compile --outfile dist/ccflare --target=bun",
+		"build": "bun build src/main.ts --compile --outfile dist/ccflare --target=bun && bun build ../../packages/proxy/src/post-processor.worker.ts --compile --outfile dist/post-processor-worker --target=bun",
 		"prepublishOnly": "bun run build",
-		"postpublish": "chmod +x dist/ccflare"
+		"postpublish": "chmod +x dist/ccflare dist/post-processor-worker"
 	},
 	"dependencies": {
 		"@ccflare/config": "workspace:*",

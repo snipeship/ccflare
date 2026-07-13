@@ -128,6 +128,13 @@ export async function proxyWithAccount(
 		// Process response and check for rate limit
 		const isRateLimited = processProxyResponse(response, account, ctx);
 		if (isRateLimited) {
+			// Drain the body to free the connection and avoid memory leaks
+			// when failover retries with another account
+			try {
+				await response.body?.cancel();
+			} catch {
+				// Ignore drain errors
+			}
 			return null; // Signal to try next account
 		}
 
