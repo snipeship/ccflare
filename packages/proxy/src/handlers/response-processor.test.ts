@@ -126,4 +126,27 @@ describe("processProxyResponse", () => {
 			"updateAccountRateLimitMeta",
 		]);
 	});
+
+	it("detects 429 via status code fallback for streaming responses", () => {
+		const account = createAccount();
+		const { ctx, calls, flush } = createContext({
+			isRateLimited: false,
+			statusHeader: null,
+			resetTime: null,
+			remaining: null,
+		});
+
+		const isRateLimited = processProxyResponse(
+			new Response("rate limited", {
+				status: 429,
+				headers: { "content-type": "text/event-stream" },
+			}),
+			account,
+			ctx,
+		);
+		flush();
+
+		expect(isRateLimited).toBe(true);
+		expect(calls).toContain("markAccountRateLimited");
+	});
 });
