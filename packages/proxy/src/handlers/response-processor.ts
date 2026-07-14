@@ -74,12 +74,31 @@ export function processProxyResponse(
 	account: Account,
 	ctx: ResolvedProxyContext,
 ): boolean {
-	const isStream = ctx.provider.isStreamingResponse?.(response) ?? false;
 	// Parse rate-limit headers once and pass the result through
-	const rateLimitInfo = ctx.provider.parseRateLimit(response);
+	const parsedRateLimitInfo = ctx.provider.parseRateLimit(response);
+	let rateLimitInfo = parsedRateLimitInfo;
 
-	// Handle rate limit
-	if (!isStream && rateLimitInfo.isRateLimited) {
+	// Handle rate limit from parsed headers (works for both streaming and non-streaming)
+	if (rateLimitInfo.isRateLimited) {
+		handleRateLimitResponse(account, rateLimitInfo, ctx);
+		updateAccountMetadata(account, rateLimitInfo, ctx);
+		return true; // Signal rate limit
+	}
+
+	// Fallback: detect 429 status directly for streaming responses where
+	// parseRateLimit may not return isRateLimited (e.g. SSE error responses)
+	if (response.status === 429) {
+		log.warn(
+			`Account ${account.name} received HTTP 429 (detected via status code)`,
+		);
+		// If parsed info didn't provide a reset time, use a reasonable default
+		if (!rateLimitInfo.resetTime) {
+			rateLimitInfo = {
+				...rateLimitInfo,
+				isRateLimited: true,
+				resetTime: Date.now() + 30 * 60 * 1000, // 30 minutes (Anthropic OAuth rate limits)
+			};
+		}
 		handleRateLimitResponse(account, rateLimitInfo, ctx);
 		updateAccountMetadata(account, rateLimitInfo, ctx);
 		return true; // Signal rate limit

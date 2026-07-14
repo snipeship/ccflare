@@ -294,6 +294,13 @@ async function tryProviderFamily(
 			);
 
 			if (processProxyResponse(response, account, requestContext)) {
+				// Drain the body to free the connection and avoid memory leaks
+				// when failover retries with another account
+				try {
+					await response.body?.cancel();
+				} catch {
+					// Ignore drain errors
+				}
 				continue;
 			}
 
