@@ -96,7 +96,7 @@ export function processProxyResponse(
 			rateLimitInfo = {
 				...rateLimitInfo,
 				isRateLimited: true,
-				resetTime: Date.now() + 5 * 60 * 1000, // 5 minutes
+				resetTime: Date.now() + 30 * 60 * 1000, // 30 minutes (Anthropic OAuth rate limits)
 			};
 		}
 		handleRateLimitResponse(account, rateLimitInfo, ctx);
