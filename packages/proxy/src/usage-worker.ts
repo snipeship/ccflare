@@ -159,6 +159,24 @@ export class UsageWorkerController implements UsageWorkerTransport {
 	private resolveShutdown: (() => void) | null = null;
 	private rejectShutdown: ((error: Error) => void) | null = null;
 	private lastError: string | null = null;
+	// Guards terminateGracefully() re-entrancy for the FULL async flow (including the
+	// wait-for-ready phase below, which happens before shutdownPromise exists), so a
+	// second concurrent call always reuses the first call's in-flight promise instead
+	// of starting a duplicate termination sequence.
+	private terminatePromise: Promise<void> | null = null;
+	// Resolved (with whether the worker became ready) by handleWorkerMessage's ready
+	// branch, or forced to `false` if the worker crashes/errors while shutting down, so
+	// terminateGracefully()'s bounded wait below never has to rely solely on its own
+	// timeout to make progress.
+	private readyWaiters: Array<(isReady: boolean) => void> = [];
+	// Set by finishShutdown() when it is called WITH an error while a
+	// terminateGracefully() call is still suspended in its wait-for-ready phase (e.g. a
+	// concurrent forceTerminate(), or a worker crash) -- at that point shutdownPromise
+	// does not exist yet, so resolveShutdown/rejectShutdown are still null and the
+	// error would otherwise be silently swallowed. runGracefulTermination() checks this
+	// after its wait and re-throws it, so the caller's promise correctly rejects
+	// instead of resolving as if shutdown had completed normally.
+	private earlyTerminationError: Error | null = null;
 
 	constructor(options: UsageWorkerControllerOptions = {}) {
 		this.createWorkerImpl = options.createWorker ?? createDefaultWorker;
@@ -213,20 +231,59 @@ export class UsageWorkerController implements UsageWorkerTransport {
 	}
 
 	terminateGracefully(): Promise<void> {
-		if (this.shutdownPromise) {
-			return this.shutdownPromise;
+		if (this.terminatePromise) {
+			return this.terminatePromise;
 		}
 
+		this.terminatePromise = this.runGracefulTermination();
+		return this.terminatePromise;
+	}
+
+	// Previously this cleared queuedMessages synchronously and unconditionally, which
+	// silently dropped any usage/analytics message that was queued (worker not yet
+	// ready) at the moment shutdown was triggered -- losing that request's log entry
+	// forever. Now, if there is something queued and the worker isn't ready yet, we
+	// give it up to readyTimeoutMs to become ready and flush before giving up (and
+	// only THEN do we drop + warn, instead of dropping silently up front).
+	private async runGracefulTermination(): Promise<void> {
 		this.shuttingDown = true;
-		this.ready = false;
 		this.clearReadyTimer();
+		// Discard any stale error left over from an earlier, unrelated termination
+		// cycle on this same controller instance (e.g. a standalone forceTerminate()
+		// call that fired with nothing racing it) -- only an error produced DURING
+		// this call's own wait below should ever be observed at the check further down.
+		this.earlyTerminationError = null;
+
+		if (this.worker && this.queuedMessages.length > 0 && !this.ready) {
+			const becameReady = await this.waitForReady(this.readyTimeoutMs);
+			if (becameReady) {
+				this.flushQueuedMessages();
+			}
+		}
+
+		if (this.earlyTerminationError) {
+			const error = this.earlyTerminationError;
+			this.earlyTerminationError = null;
+			// finishShutdown() already reset shuttingDown/worker/etc for whichever path
+			// (forceTerminate / crash) produced this error -- just propagate it so the
+			// original terminateGracefully() caller sees a rejection instead of a
+			// silent success.
+			throw error;
+		}
+
+		this.ready = false;
 		this.clearPendingAcks();
-		this.queuedMessages.length = 0;
+		if (this.queuedMessages.length > 0) {
+			this.logger.warn(
+				`Dropping ${this.queuedMessages.length} queued usage worker message(s) that could not be flushed before shutdown`,
+			);
+			this.queuedMessages.length = 0;
+		}
 
 		const worker = this.worker;
 		if (!worker) {
 			this.shuttingDown = false;
-			return Promise.resolve();
+			return;
 		}
 
 		this.shutdownPromise = new Promise<void>((resolve, reject) => {
@@ -269,10 +326,28 @@ export class UsageWorkerController implements UsageWorkerTransport {
 
 	forceTerminate(): void {
 		this.shuttingDown = true;
-		this.ready = false;
 		this.clearReadyTimer();
+		// Unblock any terminateGracefully() call currently suspended in its
+		// wait-for-ready phase (see runGracefulTermination/waitForReady below) --
+		// otherwise that caller's promise would not settle until readyTimeoutMs
+		// elapses even though this worker is being torn down right now. Mirrors the
+		// same unblock done in the onerror/onmessageerror shutdown-crash branches.
+		this.resolveReadyWaiters(false);
+
+		// Best-effort, zero-wait flush: forceTerminate() must stay non-blocking (no
+		// await), so only flush if the worker already happens to be ready right now --
+		// never wait for readiness the way terminateGracefully() does.
+		if (this.ready) {
+			this.flushQueuedMessages();
+		}
+		this.ready = false;
 		this.clearPendingAcks();
-		this.queuedMessages.length = 0;
+		if (this.queuedMessages.length > 0) {
+			this.logger.warn(
+				`Dropping ${this.queuedMessages.length} queued usage worker message(s) on force termination`,
+			);
+			this.queuedMessages.length = 0;
+		}
 		if (this.shutdownTimer) {
 			clearTimeout(this.shutdownTimer);
 			this.shutdownTimer = null;
@@ -280,6 +355,47 @@ export class UsageWorkerController implements UsageWorkerTransport {
 
 		const worker = this.worker;
 		this.finishShutdown(worker, new Error("Usage worker was force terminated"));
+	}
+
+	// Resolves to true once a "ready" message arrives, or false if readiness is not
+	// reached within timeoutMs, or if the worker crashes/errors while shutting down.
+	// Always resolves (never rejects) and never hangs past timeoutMs, so this can't
+	// make terminateGracefully() hang indefinitely.
+	private waitForReady(timeoutMs: number): Promise<boolean> {
+		if (this.ready) {
+			return Promise.resolve(true);
+		}
+
+		return new Promise<boolean>((resolve) => {
+			let settled = false;
+			let timer: ReturnType<typeof setTimeout>;
+			const settle = (isReady: boolean) => {
+				if (settled) {
+					return;
+				}
+				settled = true;
+				clearTimeout(timer);
+				const index = this.readyWaiters.indexOf(settle);
+				if (index !== -1) {
+					this.readyWaiters.splice(index, 1);
+				}
+				resolve(isReady);
+			};
+
+			this.readyWaiters.push(settle);
+			timer = setTimeout(() => settle(false), timeoutMs);
+			unrefTimer(timer);
+		});
+	}
+
+	private resolveReadyWaiters(isReady: boolean): void {
+		if (this.readyWaiters.length === 0) {
+			return;
+		}
+		const waiters = this.readyWaiters.splice(0, this.readyWaiters.length);
+		for (const settle of waiters) {
+			settle(isReady);
+		}
 	}
 
 	private startWorker(): void {
@@ -310,6 +426,10 @@ export class UsageWorkerController implements UsageWorkerTransport {
 			this.lastError = message;
 			this.logger.error(`Usage worker crashed: ${message}`);
 			if (this.shuttingDown) {
+				// Unblock any pending terminateGracefully() wait-for-ready immediately
+				// instead of leaving it to idle out its own timeout -- the worker is gone,
+				// it will never become ready.
+				this.resolveReadyWaiters(false);
 				this.finishShutdown(
 					worker,
 					new Error(`Usage worker crashed during shutdown: ${message}`),
@@ -327,6 +447,7 @@ export class UsageWorkerController implements UsageWorkerTransport {
 			this.lastError = "Usage worker emitted an invalid message payload";
 			this.logger.error("Usage worker emitted an invalid message payload");
 			if (this.shuttingDown) {
+				this.resolveReadyWaiters(false);
 				this.finishShutdown(
 					worker,
 					new Error("Usage worker emitted an invalid message during shutdown"),
@@ -395,15 +516,26 @@ export class UsageWorkerController implements UsageWorkerTransport {
 			return;
 		}
 
-		if (this.shuttingDown) {
-			return;
-		}
-
 		if (isReadyMessage(message)) {
 			this.ready = true;
 			this.lastError = null;
 			this.clearReadyTimer();
-			this.flushQueuedMessages();
+			// Unblock any terminateGracefully() wait-for-ready call unconditionally --
+			// this must run even while shuttingDown, otherwise a ready-signal that
+			// arrives during the shutdown window would be silently ignored and the
+			// bounded wait below would have to idle out its full timeout instead of
+			// resolving immediately.
+			this.resolveReadyWaiters(true);
+			// The explicit wait-then-flush path in runGracefulTermination() already
+			// handles flushing for the shutdown case; only auto-flush here when we are
+			// NOT shutting down, to avoid a double-flush race with that path.
+			if (!this.shuttingDown) {
+				this.flushQueuedMessages();
+			}
+			return;
+		}
+
+		if (this.shuttingDown) {
 			return;
 		}
 
@@ -547,10 +679,22 @@ export class UsageWorkerController implements UsageWorkerTransport {
 		this.resolveShutdown = null;
 		this.rejectShutdown = null;
 		this.shutdownPromise = null;
+		// Reset so a controller that gets restarted/reused after a full shutdown
+		// (e.g. crash-during-shutdown, see onerror above) is not permanently stuck
+		// returning an already-settled promise from a future terminateGracefully() call.
+		this.terminatePromise = null;
 
 		if (error) {
 			this.lastError = error.message;
-			rejectShutdown?.(error);
+			if (rejectShutdown) {
+				rejectShutdown(error);
+			} else {
+				// No in-flight shutdownPromise to reject (finishShutdown fired while a
+				// terminateGracefully() call was still awaiting waitForReady, before
+				// shutdownPromise existed) -- stash it for runGracefulTermination to
+				// re-throw once its wait resolves.
+				this.earlyTerminationError = error;
+			}
 			return;
 		}
 
