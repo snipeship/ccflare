@@ -1,6 +1,11 @@
 import { describe, expect, it } from "bun:test";
+import { REPO_ROOT } from "./test-helpers/workspace";
 
-const REPO_ROOT = "/Users/brain/Coding/snipeship/ccflare";
+// REPO_ROOT was previously hardcoded to the original author's local machine path
+// ("/Users/brain/Coding/snipeship/ccflare"), which does not exist on any other checkout and made
+// this test non-portable (Bun.spawn's cwd pointing at a nonexistent directory fails with a
+// misleading ENOENT attributed to the spawned binary, not the cwd). Reusing the existing portable
+// helper (computed via import.meta.dir, not hardcoded) fixes this for any checkout location.
 
 describe("graceful shutdown integration", () => {
 	it("awaits programmatic stop until pending request writes are flushed", async () => {
