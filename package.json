@@ -42,6 +42,8 @@
 	},
 	"overrides": {
 		"react": "^19.0.0",
-		"@types/react": "^19.0.0"
+		"@types/react": "^19.0.0",
+		"diff": ">=8.0.3",
+		"file-type": ">=21.3.1"
 	}
 }
