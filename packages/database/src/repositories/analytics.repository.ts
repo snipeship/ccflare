@@ -208,7 +208,16 @@ export class AnalyticsRepository extends BaseRepository<never> {
 				FROM model_stats ms
 				LEFT JOIN ranked_times rt
 					ON rt.model = ms.model
-					AND rt.row_num = CAST(CEIL(rt.total_count * 0.95) AS INTEGER)
+					-- p95 rank = ceil(total_count * 0.95). CEIL()/FLOOR() are not builtin SQLite
+					-- functions unless compiled with SQLITE_ENABLE_MATH_FUNCTIONS (not available in
+					-- bun:sqlite), so ceil(x) for non-negative x is computed portably as
+					-- trunc(x) + (x > trunc(x)) — CAST(x AS INTEGER) truncates toward zero, which
+					-- equals floor(x) for any x >= 0 (total_count is always a positive COUNT(*), so
+					-- this is always non-negative).
+					AND rt.row_num = (
+						CAST(rt.total_count * 0.95 AS INTEGER) +
+						(rt.total_count * 0.95 > CAST(rt.total_count * 0.95 AS INTEGER))
+					)
 				ORDER BY ms.total_requests DESC
 			`,
 			[...queryParams, ...queryParams],
