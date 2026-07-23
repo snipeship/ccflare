@@ -79,7 +79,13 @@ function analyzeQueryPerformance(db: Database) {
 				)
 				SELECT response_time_ms as p95_response_time
 				FROM ordered_times
-				WHERE row_num = CAST(CEIL(total_count * 0.95) AS INTEGER)
+				-- CEIL()/FLOOR() are not builtin SQLite functions in bun:sqlite; portable
+				-- ceil(x) for non-negative x = trunc(x) + (x > trunc(x)) (see analytics.repository.ts
+				-- for the same fix applied to the production query).
+				WHERE row_num = (
+					CAST(total_count * 0.95 AS INTEGER) +
+					(total_count * 0.95 > CAST(total_count * 0.95 AS INTEGER))
+				)
 				LIMIT 1
 			`,
 			params: ["claude-3-5-sonnet-20241022"],
