@@ -13,6 +13,7 @@ describe("toAccount", () => {
 			"openai",
 			"claude-code",
 			"codex",
+			"kimi",
 		]);
 	});
 

@@ -7,6 +7,7 @@ import {
 	getProviderAuthMethod,
 	getProviderDisplayLabel,
 	isAccountProvider,
+	isDeviceCodeProvider,
 } from "@ccflare/types";
 import { type AccountDisplay, toAccountDisplay } from "@ccflare/ui";
 import type { PromptAdapter } from "../prompts/adapter";
@@ -89,9 +90,9 @@ export async function addAccount(
 		name,
 		provider,
 	});
-	const { authUrl, sessionId } = flowResult;
+	const { authUrl, sessionId, userCode } = flowResult;
 
-	// Open browser and prompt for code
+	// Open browser to authenticate
 	console.log(`\nOpening browser to authenticate...`);
 	console.log(`URL: ${authUrl}`);
 	const browserOpened = await openBrowser(authUrl);
@@ -101,11 +102,19 @@ export async function addAccount(
 		);
 	}
 
-	// Get authorization code
-	const code = await adapter.input("\nEnter the authorization code: ");
-
-	// Complete OAuth flow
-	console.log("\nExchanging code for tokens...");
+	// Device-grant providers return no code to paste: approve in the browser
+	// and the token endpoint is polled until it hands over tokens.
+	const deviceGrant = isDeviceCodeProvider(provider);
+	let code = "";
+	if (deviceGrant) {
+		if (userCode) {
+			console.log(`\nVerification code: ${userCode}`);
+		}
+		console.log("\nWaiting for you to approve in the browser...");
+	} else {
+		code = await adapter.input("\nEnter the authorization code: ");
+		console.log("\nExchanging code for tokens...");
+	}
 	const _account = await oauthFlow.complete(
 		{ sessionId, code, name },
 		flowResult,

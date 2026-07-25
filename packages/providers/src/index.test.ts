@@ -8,6 +8,7 @@ describe("built-in providers", () => {
 			"openai",
 			"claude-code",
 			"codex",
+			"kimi",
 		]);
 	});
 

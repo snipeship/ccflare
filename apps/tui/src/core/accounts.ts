@@ -12,6 +12,7 @@ import {
 	type AuthMethod,
 	getProviderAuthMethod,
 	getProviderDisplayLabel,
+	isDeviceCodeProvider,
 	type OAuthProvider,
 } from "@ccflare/types";
 import type { AccountDisplay } from "@ccflare/ui";
@@ -107,16 +108,21 @@ export async function submitAddAccount(
 		return;
 	}
 
-	if (!flowData || !code) {
+	const deviceGrant = isDeviceCodeProvider(provider);
+	if (!flowData || (!code && !deviceGrant)) {
 		throw new Error("Authorization code is required for OAuth providers.");
 	}
 
 	const config = new Config();
 	const oauthFlow = await createOAuthFlow(dbOps, config);
 
-	console.log("\nExchanging code for tokens...");
+	console.log(
+		deviceGrant
+			? "\nWaiting for you to approve in the browser..."
+			: "\nExchanging code for tokens...",
+	);
 	await oauthFlow.complete(
-		{ sessionId: flowData.sessionId, code, name },
+		{ sessionId: flowData.sessionId, code: code ?? "", name },
 		flowData,
 	);
 

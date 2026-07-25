@@ -4,6 +4,7 @@ import {
 	type ApiKeyProvider,
 	type AuthSessionStatus,
 	isApiKeyProvider,
+	isDeviceCodeProvider,
 	isOAuthProvider,
 	type OAuthProvider,
 } from "@ccflare/types";
@@ -69,6 +70,11 @@ export function AccountAddForm({
 	const selectedOAuthProvider = isOAuthProvider(newAccount.provider)
 		? newAccount.provider
 		: null;
+	// Device-grant providers (e.g. Kimi) never show the user a code: the server
+	// polls the token endpoint after the user approves in the browser.
+	const isDeviceGrant =
+		selectedOAuthProvider !== null &&
+		isDeviceCodeProvider(selectedOAuthProvider);
 
 	const resetForm = useCallback(() => {
 		setAuthStep("form");
@@ -174,6 +180,23 @@ export function AccountAddForm({
 			}
 
 			setAuthStep("waiting");
+
+			// Device grant: nothing comes back from the browser, so ask the server
+			// to start polling now. Success is picked up by the status poll above;
+			// only failures need surfacing here.
+			if (isDeviceCodeProvider(selectedOAuthProvider)) {
+				void onCompleteOAuth({
+					provider: selectedOAuthProvider,
+					sessionId,
+					code: "",
+				}).catch((error: unknown) => {
+					onError(
+						error instanceof Error
+							? error.message
+							: "Failed to complete authorization",
+					);
+				});
+			}
 			return;
 		}
 	};
@@ -279,8 +302,10 @@ export function AccountAddForm({
 						<div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
 							This provider uses OAuth. Click{" "}
 							<span className="font-medium text-foreground">Start OAuth</span>{" "}
-							to open the authorization flow in a new tab. ccflare will detect
-							completion automatically.
+							to open the authorization flow in a new tab.{" "}
+							{isDeviceGrant
+								? "Approve the device authorization there; there is no code to paste."
+								: "ccflare will detect completion automatically."}
 						</div>
 					)}
 				</>
@@ -301,8 +326,11 @@ export function AccountAddForm({
 							A new browser tab has opened for authentication. Finish the
 							provider sign-in flow and this page will update automatically
 							every 2 seconds.
+							{isDeviceGrant
+								? " This provider has no code to paste: just approve the device authorization in the new tab."
+								: ""}
 						</p>
-						<div className="space-y-2">
+						<div className={isDeviceGrant ? "hidden" : "space-y-2"}>
 							<Label htmlFor="authorization-code">Authorization Code</Label>
 							<Input
 								id="authorization-code"
@@ -331,14 +359,16 @@ export function AccountAddForm({
 						)}
 					</div>
 					<div className="flex gap-2">
-						<Button
-							onClick={() => {
-								void handleCompleteOAuth();
-							}}
-							disabled={isCompletingOAuth || !authorizationCode.trim()}
-						>
-							{isCompletingOAuth ? "Completing..." : "Submit Code"}
-						</Button>
+						{!isDeviceGrant && (
+							<Button
+								onClick={() => {
+									void handleCompleteOAuth();
+								}}
+								disabled={isCompletingOAuth || !authorizationCode.trim()}
+							>
+								{isCompletingOAuth ? "Completing..." : "Submit Code"}
+							</Button>
+						)}
 						<Button variant="outline" onClick={handleCancel}>
 							Cancel
 						</Button>

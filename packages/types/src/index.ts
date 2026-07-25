@@ -5,6 +5,7 @@ export * from "./conversation";
 export * from "./conversation-links";
 export * from "./guards";
 export * from "./logging";
+export * from "./pricing-catalogue";
 export * from "./provider-metadata";
 export * from "./request";
 export * from "./request-events";

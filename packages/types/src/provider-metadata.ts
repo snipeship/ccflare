@@ -3,6 +3,7 @@ const PROVIDER_METADATA_MAP = {
 		displayLabel: "Anthropic",
 		authMethod: "api_key",
 		supportsOAuth: false,
+		oauthGrant: "none",
 		supportsWebSocket: false,
 		defaultBaseUrl: "https://api.anthropic.com",
 		specialRequirements: [],
@@ -11,6 +12,7 @@ const PROVIDER_METADATA_MAP = {
 		displayLabel: "OpenAI",
 		authMethod: "api_key",
 		supportsOAuth: false,
+		oauthGrant: "none",
 		supportsWebSocket: false,
 		defaultBaseUrl: "https://api.openai.com/v1",
 		specialRequirements: [],
@@ -19,6 +21,7 @@ const PROVIDER_METADATA_MAP = {
 		displayLabel: "Claude Code",
 		authMethod: "oauth",
 		supportsOAuth: true,
+		oauthGrant: "authorization_code",
 		supportsWebSocket: false,
 		defaultBaseUrl: "https://api.anthropic.com",
 		specialRequirements: ["Requires Claude Code OAuth authentication"],
@@ -27,9 +30,21 @@ const PROVIDER_METADATA_MAP = {
 		displayLabel: "Codex",
 		authMethod: "oauth",
 		supportsOAuth: true,
+		oauthGrant: "authorization_code",
 		supportsWebSocket: true,
 		defaultBaseUrl: "https://chatgpt.com/backend-api/codex",
 		specialRequirements: ["Requires Codex OAuth authentication"],
+	},
+	kimi: {
+		displayLabel: "Kimi Code",
+		authMethod: "oauth",
+		supportsOAuth: true,
+		oauthGrant: "device_code",
+		supportsWebSocket: false,
+		defaultBaseUrl: "https://api.kimi.com/coding/v1",
+		specialRequirements: [
+			"Requires Kimi Code OAuth device authorization (approve in browser, no code to paste)",
+		],
 	},
 } as const satisfies Record<
 	string,
@@ -37,11 +52,21 @@ const PROVIDER_METADATA_MAP = {
 		displayLabel: string;
 		authMethod: "api_key" | "oauth";
 		supportsOAuth: boolean;
+		oauthGrant: OAuthGrant;
 		supportsWebSocket: boolean;
 		defaultBaseUrl: string;
 		specialRequirements: readonly string[];
 	}
 >;
+
+/**
+ * Which OAuth grant a provider's onboarding uses.
+ *
+ * `authorization_code` hands the user a redirect URL and expects an
+ * authorization code back. `device_code` hands the user a verification URL and
+ * polls the token endpoint instead -- there is no code for the user to paste.
+ */
+export type OAuthGrant = "none" | "authorization_code" | "device_code";
 
 type ProviderMetadataMap = typeof PROVIDER_METADATA_MAP;
 
@@ -121,6 +146,21 @@ export function isOAuthProvider(value: string): value is OAuthProvider {
 		isAccountProvider(value) &&
 		PROVIDER_METADATA_MAP[value].authMethod === "oauth"
 	);
+}
+
+/**
+ * True when onboarding this provider uses the OAuth device authorization
+ * grant, i.e. the user approves in a browser and no code comes back.
+ */
+export function isDeviceCodeProvider(value: string): value is OAuthProvider {
+	return (
+		isAccountProvider(value) &&
+		PROVIDER_METADATA_MAP[value].oauthGrant === "device_code"
+	);
+}
+
+export function getProviderOAuthGrant(provider: AccountProvider): OAuthGrant {
+	return PROVIDER_METADATA_MAP[provider].oauthGrant;
 }
 
 export function getProviderMetadata<P extends AccountProvider>(

@@ -20,6 +20,7 @@ ccflare’s provider layer gives the rest of the system a consistent way to deal
 - `openai`
 - `claude-code`
 - `codex`
+- `kimi`
 
 These are exposed through `/v1/{provider}/...` routes.
 
@@ -81,8 +82,26 @@ These use `api_key` accounts and do not depend on refresh-token flows.
 
 - `claude-code`
 - `codex`
+- `kimi`
 
 These use provider-specific OAuth adapters plus the shared OAuth flow package. Access tokens may be refreshed automatically during forwarding.
+
+### OAuth Grants
+
+Provider metadata records an `oauthGrant` so onboarding code can branch without
+importing provider classes:
+
+- `authorization_code` (`claude-code`, `codex`) — the user opens a redirect URL
+  and an authorization code comes back.
+- `device_code` (`kimi`) — the user approves at a verification URL and there is
+  **no code to paste**; ccflare polls the token endpoint instead.
+
+For device-grant providers `OAuthFlow.begin()` calls the provider's
+`beginDeviceAuthorization()` instead of generating PKCE, stores the device code
+in the existing session `verifier` slot, and returns the verification URL as
+`authUrl` plus a `userCode` for display. `complete()` is then called with an
+empty `code`; the provider's `exchangeCode()` polls until the authorization is
+approved, denied, or expires.
 
 ## OAuth Flow Integration
 
@@ -161,6 +180,36 @@ That includes:
 
 Heavy stream/websocket aggregation still happens in the proxy worker, but provider modules own the provider-specific parsing rules.
 
+## Request Cost
+
+ccflare stores a `costUsd` per request. It has one price source: the models.dev
+catalogue (`https://models.dev/api.json`), fetched by `@ccflare/core`'s pricing
+module, cached on disk under the temp directory, and refreshed every 24h
+(`CF_PRICING_REFRESH_HOURS`). No rates are hardcoded in this repo.
+
+Costs are **list-price equivalents, not billed amounts.** OAuth subscription
+accounts bill a flat rate, so the recorded number answers "what would this
+traffic have cost at metered prices," which is what makes providers comparable
+in analytics.
+
+The catalogue is keyed by provider, so the lookup needs to know which block to
+read. `packages/types/src/pricing-catalogue.ts` maps each ccflare provider to:
+
+- the catalogue blocks to consult first, because the same model id is listed by
+  many resellers at different rates and object key order is not a pricing
+  decision — `claude-code` reads `anthropic`, `codex` reads `openai`, `kimi`
+  reads `moonshotai`
+- model id aliases, for plans that publish their own ids
+
+Kimi Code needs the aliases. Its plan ids are listed under a `kimi-for-coding`
+catalogue block at zero cost because the plan is flat-rate, so they are aliased
+onto Moonshot's metered ids (`kimi-for-coding` → `kimi-k2.7-code`,
+`kimi-for-coding-highspeed` → `kimi-k2.7-code-highspeed`, `k3` and `k3-256k` →
+`kimi-k3`). Claude Code and Codex need no aliases: their model ids already match
+the first-party Anthropic and OpenAI entries.
+
+A model id absent from the catalogue logs one warning and records a cost of 0.
+
 ## Built-In Provider Notes
 
 ### Anthropic
@@ -186,6 +235,18 @@ Heavy stream/websocket aggregation still happens in the proxy worker, but provid
 - OAuth-based provider
 - Codex-specific backend route handling
 - custom headers and rate-limit parsing
+
+### Kimi
+
+- OAuth-based provider using the device authorization grant
+- upstream base URL defaults to `https://api.kimi.com/coding/v1`
+- OpenAI-compatible chat-completions upstream, so URL building, rate-limit
+  parsing and usage extraction are inherited from the OpenAI provider
+- access tokens are short-lived (900s), so refresh happens frequently and the
+  refresh token is rotated on each refresh
+- plan model ids are aliased onto Moonshot's metered ids for costing; see
+  [Request Cost](#request-cost)
+- quota fetching is not implemented yet
 
 ## Adding a New Provider
 

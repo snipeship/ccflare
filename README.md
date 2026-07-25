@@ -41,6 +41,7 @@ ccflare proxies requests by provider prefix:
 
 - `http://localhost:8080/v1/anthropic/*`
 - `http://localhost:8080/v1/openai/*`
+- `http://localhost:8080/v1/kimi/*`
 - `http://localhost:8080/v1/ccflare/*`
 
 Examples:
@@ -48,6 +49,7 @@ Examples:
 - `/v1/anthropic/v1/messages` → `https://api.anthropic.com/v1/messages`
 - `/v1/openai/chat/completions` → `https://api.openai.com/v1/chat/completions`
 - `/v1/openai/responses` → `https://api.openai.com/v1/responses`
+- `/v1/kimi/chat/completions` → `https://api.kimi.com/coding/v1/chat/completions`
 
 The `/v1/{provider}` prefix is stripped exactly once before forwarding upstream.
 

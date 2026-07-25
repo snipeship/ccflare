@@ -19,6 +19,7 @@ import {
 	type AuthCompleteData,
 	type AuthInitData,
 	isAccountProvider,
+	isDeviceCodeProvider,
 	type MutationResult,
 } from "@ccflare/types";
 import { parseJsonObject } from "../utils/json";
@@ -272,12 +273,16 @@ export function createAuthCompleteHandler(dbOps: DatabaseOperations) {
 				return errorResponse(BadRequest("Session ID is required"));
 			}
 
-			// Validate code
-			const code = validateString(body.code, "code", {
-				required: true,
-				minLength: 1,
-			});
-			if (!code) {
+			// Device-grant providers never produce a code for the user to send;
+			// completion polls the token endpoint with the stored device code.
+			const deviceGrant = isDeviceCodeProvider(validatedProvider);
+			const code = deviceGrant
+				? ""
+				: validateString(body.code, "code", {
+						required: true,
+						minLength: 1,
+					});
+			if (!deviceGrant && !code) {
 				return errorResponse(BadRequest("Authorization code is required"));
 			}
 
@@ -294,9 +299,29 @@ export function createAuthCompleteHandler(dbOps: DatabaseOperations) {
 				const config = new Config();
 				const oauthFlow = await createOAuthFlow(dbOps, config);
 
+				// Device grants poll the token endpoint until the user approves in
+				// the browser, which routinely outlasts an HTTP request. Run it in
+				// the background and let the caller watch the auth session status;
+				// drop the session on failure so the status flips off "pending".
+				if (deviceGrant) {
+					void oauthFlow
+						.complete({ sessionId, code: "", name })
+						.catch((error: unknown) => {
+							log.error(`Device authorization failed for '${name}':`, error);
+							dbOps.deleteAuthSession(sessionId);
+						});
+
+					const pending: MutationResult<AuthCompleteData> = {
+						success: true,
+						message: `Waiting for '${name}' to be approved in the browser`,
+						data: { provider: validatedProvider },
+					};
+					return jsonResponse(pending);
+				}
+
 				await oauthFlow.complete({
 					sessionId,
-					code,
+					code: code ?? "",
 					name,
 				});
 

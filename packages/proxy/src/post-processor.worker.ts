@@ -685,12 +685,16 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 		state.usage.costUsd =
 			usageModel === "unknown"
 				? 0
-				: await estimateCostUSD(usageModel, {
-						inputTokens: state.usage.inputTokens,
-						outputTokens: finalOutputTokens,
-						cacheReadInputTokens: state.usage.cacheReadInputTokens,
-						cacheCreationInputTokens: state.usage.cacheCreationInputTokens,
-					});
+				: await estimateCostUSD(
+						usageModel,
+						{
+							inputTokens: state.usage.inputTokens,
+							outputTokens: finalOutputTokens,
+							cacheReadInputTokens: state.usage.cacheReadInputTokens,
+							cacheCreationInputTokens: state.usage.cacheCreationInputTokens,
+						},
+						{ provider: startMessage.providerName },
+					);
 
 		// Calculate tokens per second using actual streaming duration
 		if (finalOutputTokens > 0) {

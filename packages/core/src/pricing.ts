@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { resolvePricingCatalogueLookup } from "@ccflare/types";
 import { TIME_CONSTANTS } from "./constants";
 
 export interface TokenBreakdown {
@@ -144,6 +145,12 @@ class PriceCatalogue {
 		return data;
 	}
 
+	reset(): void {
+		this.priceData = null;
+		this.lastFetch = 0;
+		this.warnedModels.clear();
+	}
+
 	warnOnce(modelId: string): void {
 		if (!this.warnedModels.has(modelId)) {
 			this.warnedModels.add(modelId);
@@ -162,10 +169,36 @@ export function setPricingLogger(logger: Logger): void {
 	PriceCatalogue.get().setLogger(logger);
 }
 
+/**
+ * Drop the in-memory catalogue so the next estimate refetches.
+ *
+ * The catalogue is a process-wide singleton with a 24h memory cache, which
+ * tests would otherwise carry between cases.
+ */
+export function resetPricingCatalogue(): void {
+	PriceCatalogue.get().reset();
+}
+
+/**
+ * Look up a model's rates, preferring the named catalogue blocks.
+ *
+ * The catalogue lists the same model id under many resellers at different
+ * rates, and object key order is not a pricing decision, so the provider's
+ * first-party blocks are consulted first. The catalogue-wide scan remains as a
+ * fallback for ids ccflare has no provider hint for.
+ */
 function findModelCost(
 	pricing: ApiResponse,
 	modelId: string,
+	preferredCatalogues: readonly string[] = [],
 ): ModelCost | null {
+	for (const catalogue of preferredCatalogues) {
+		const model = pricing[catalogue]?.models?.[modelId];
+		if (model?.cost) {
+			return model.cost;
+		}
+	}
+
 	for (const provider of Object.values(pricing)) {
 		const model = provider.models?.[modelId];
 		if (model?.cost) {
@@ -176,12 +209,19 @@ function findModelCost(
 }
 
 /**
- * Estimate the total cost in USD for a request based on token counts
+ * Estimate the total cost in USD for a request based on token counts.
+ *
+ * Passing the account provider that served the request lets subscription model
+ * ids resolve to their metered equivalent and keeps ambiguous ids on the
+ * first-party catalogue block. Costs are list-price equivalents, not billed
+ * amounts: a flat-rate subscription account bills nothing per request.
+ *
  * @returns Cost in dollars (NOT per million)
  */
 export async function estimateCostUSD(
 	modelId: string,
 	tokens: TokenBreakdown,
+	options: { provider?: string } = {},
 ): Promise<number> {
 	const catalogue = PriceCatalogue.get();
 
@@ -192,11 +232,13 @@ export async function estimateCostUSD(
 			throw new Error("Model id is empty");
 		}
 
-		const cost = findModelCost(pricing, normalizedModelId);
+		const lookup = resolvePricingCatalogueLookup(
+			normalizedModelId,
+			options.provider,
+		);
+		const cost = findModelCost(pricing, lookup.modelId, lookup.catalogues);
 		if (!cost) {
-			throw new Error(
-				`Model ${normalizedModelId} not found in pricing catalogue`,
-			);
+			throw new Error(`Model ${lookup.modelId} not found in pricing catalogue`);
 		}
 
 		let totalCost = 0;

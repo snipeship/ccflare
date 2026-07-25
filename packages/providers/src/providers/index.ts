@@ -17,4 +17,13 @@ export {
 	CodexOAuthProvider,
 	CodexProvider,
 } from "./codex/index";
+export {
+	KIMI_DEVICE_GRANT_TYPE,
+	KIMI_OAUTH_CLIENT_ID,
+	KIMI_OAUTH_DEVICE_AUTHORIZATION_URL,
+	KIMI_OAUTH_HOST,
+	KIMI_OAUTH_TOKEN_URL,
+	KimiOAuthProvider,
+	KimiProvider,
+} from "./kimi/index";
 export { OpenAIOAuthProvider, OpenAIProvider } from "./openai/index";

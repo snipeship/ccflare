@@ -58,10 +58,19 @@ export interface BeginResult {
 	authUrl: string;
 	pkce: PKCEChallenge;
 	oauthConfig: OAuthProviderConfig;
+	/**
+	 * Device-grant providers only: the short code the user confirms in the
+	 * browser. Present so UIs can display it alongside the verification URL.
+	 */
+	userCode?: string;
 }
 
 export interface CompleteOptions {
 	sessionId: string;
+	/**
+	 * Authorization code. Empty for device-grant providers, which poll the
+	 * token endpoint with the stored device code instead.
+	 */
 	code: string;
 	name?: string;
 }
@@ -108,15 +117,48 @@ export class OAuthFlow {
 		// Get OAuth provider
 		const oauthProvider = getOAuthProviderForFlow(provider);
 
-		// Generate PKCE challenge
-		const pkce = await generatePKCE();
-
 		// Get OAuth config with provider-specific client ID handling
 		const oauthConfig = getOAuthConfigForFlow(
 			provider,
 			this.config,
 			oauthProvider,
 		);
+
+		// Device-grant providers (e.g. Kimi) have no redirect and no PKCE: the
+		// device code takes the verifier slot and is polled in complete().
+		if (oauthProvider.beginDeviceAuthorization) {
+			const device = await oauthProvider.beginDeviceAuthorization(oauthConfig);
+			const pkce: PKCEChallenge = {
+				verifier: device.deviceCode,
+				challenge: "",
+			};
+			const sessionState: SessionState = {
+				verifier: device.deviceCode,
+				// No redirect callback matches on state here, but the column is
+				// required and must stay unique across sessions.
+				state: crypto.randomUUID(),
+				status: "pending",
+			};
+
+			const sessionId = this.dbOps.createAuthSession(
+				provider,
+				"oauth",
+				name,
+				JSON.stringify(sessionState),
+				device.expiresAt,
+			);
+
+			return {
+				sessionId,
+				authUrl: device.verificationUriComplete,
+				pkce,
+				oauthConfig,
+				userCode: device.userCode,
+			};
+		}
+
+		// Generate PKCE challenge
+		const pkce = await generatePKCE();
 
 		// Generate auth URL
 		const authUrl = oauthProvider.generateAuthUrl(oauthConfig, pkce);

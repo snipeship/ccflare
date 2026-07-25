@@ -21,6 +21,7 @@ export * from "./lifecycle";
 export { getModelShortName } from "./models";
 export {
 	estimateCostUSD,
+	resetPricingCatalogue,
 	setPricingLogger,
 	type TokenBreakdown,
 } from "./pricing";

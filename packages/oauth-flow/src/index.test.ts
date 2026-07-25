@@ -191,4 +191,50 @@ describe("OAuthFlow", () => {
 			}),
 		);
 	});
+	it("begins a Kimi device flow without PKCE and stores the device code", async () => {
+		const { config, dbOps } = createTestContext();
+		const oauthFlow = await createOAuthFlow(dbOps, config);
+
+		globalThis.fetch = Object.assign(
+			async (input: RequestInfo | URL, init?: RequestInit) => {
+				const request = new Request(input, init);
+				expect(request.url).toBe(
+					"https://auth.kimi.com/api/oauth/device_authorization",
+				);
+
+				return new Response(
+					JSON.stringify({
+						device_code: "kimi-device-code",
+						user_code: "ABCD-1234",
+						verification_uri: "https://www.kimi.com/code/authorize_device",
+						verification_uri_complete:
+							"https://www.kimi.com/code/authorize_device?user_code=ABCD-1234",
+						expires_in: 1800,
+						interval: 5,
+					}),
+					{ status: 200, headers: { "content-type": "application/json" } },
+				);
+			},
+			{ preconnect: originalFetch.preconnect },
+		) as typeof fetch;
+
+		const result = await oauthFlow.begin({
+			name: "kimi-device-account",
+			provider: "kimi",
+		});
+
+		expect(result.authUrl).toBe(
+			"https://www.kimi.com/code/authorize_device?user_code=ABCD-1234",
+		);
+		expect(result.userCode).toBe("ABCD-1234");
+		expect(result.pkce.verifier).toBe("kimi-device-code");
+		expect(
+			JSON.parse(dbOps.getAuthSession(result.sessionId)?.stateJson ?? "{}"),
+		).toEqual(
+			expect.objectContaining({
+				verifier: "kimi-device-code",
+				status: "pending",
+			}),
+		);
+	});
 });

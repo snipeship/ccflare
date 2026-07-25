@@ -20,6 +20,7 @@ export * from "./types";
 import { AnthropicProvider } from "./providers/anthropic/provider";
 import { ClaudeCodeProvider } from "./providers/claude-code/provider";
 import { CodexProvider } from "./providers/codex/provider";
+import { KimiProvider } from "./providers/kimi/provider";
 import { OpenAIProvider } from "./providers/openai/provider";
 // Auto-register built-in providers
 import { registerProvider } from "./registry";
@@ -28,3 +29,4 @@ registerProvider(new AnthropicProvider());
 registerProvider(new OpenAIProvider());
 registerProvider(new ClaudeCodeProvider());
 registerProvider(new CodexProvider());
+registerProvider(new KimiProvider());

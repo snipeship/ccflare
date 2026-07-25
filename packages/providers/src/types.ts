@@ -83,6 +83,22 @@ export interface OAuthProviderConfig {
 	redirectUri: string;
 }
 
+/**
+ * Result of an OAuth device authorization request (RFC 8628).
+ * `deviceCode` is the polling credential; the user approves at
+ * `verificationUriComplete`.
+ */
+export interface DeviceAuthorization {
+	deviceCode: string;
+	userCode: string;
+	verificationUri: string;
+	verificationUriComplete: string;
+	/** Seconds to wait between token polls. */
+	interval: number;
+	/** Epoch ms after which the device code is no longer valid. */
+	expiresAt: number;
+}
+
 export interface OAuthProvider {
 	getOAuthConfig(): OAuthProviderConfig;
 	exchangeCode(
@@ -91,6 +107,14 @@ export interface OAuthProvider {
 		config: OAuthProviderConfig,
 	): Promise<TokenResult>;
 	generateAuthUrl(config: OAuthProviderConfig, pkce: PKCEChallenge): string;
+	/**
+	 * Device-code providers implement this instead of the PKCE redirect flow.
+	 * When present, the OAuth flow starts here and `exchangeCode` receives the
+	 * device code in its `verifier` argument, ignoring `code`.
+	 */
+	beginDeviceAuthorization?(
+		config: OAuthProviderConfig,
+	): Promise<DeviceAuthorization>;
 }
 
 export interface PKCEChallenge {
