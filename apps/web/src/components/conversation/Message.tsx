@@ -23,6 +23,7 @@ interface MessageProps {
 	tools?: ToolUse[];
 	toolResults?: ToolResult[];
 	cleanLineNumbers: (content: string) => string;
+	linebreak?: boolean;
 }
 
 const ROLE_STYLES: Record<Role, { bg: string; Icon: LucideIcon }> = {
@@ -38,6 +39,7 @@ function MessageComponent({
 	tools,
 	toolResults,
 	cleanLineNumbers,
+	linebreak = false,
 }: MessageProps) {
 	const isRightAligned = role === "user";
 	const thinkingBlock = contentBlocks?.find(
@@ -104,7 +106,10 @@ function MessageComponent({
 					{/* Thinking block */}
 					{hasThinking && thinkingBlock && (
 						<div className="mb-2">
-							<ThinkingBlock content={cleanLineNumbers(thinkingText)} />
+							<ThinkingBlock
+								content={cleanLineNumbers(thinkingText)}
+								linebreak={linebreak}
+							/>
 						</div>
 					)}
 
@@ -121,7 +126,11 @@ function MessageComponent({
 					)}
 
 					{displayContent.length > 0 && (
-						<MessageBubble role={role} content={displayContent} />
+						<MessageBubble
+							role={role}
+							content={displayContent}
+							linebreak={linebreak}
+						/>
 					)}
 
 					{/* Tool usage */}
@@ -132,6 +141,7 @@ function MessageComponent({
 									key={`tool-${tool.id || `${tool.name}-${JSON.stringify(tool.input)}`}`}
 									toolName={tool.name}
 									input={tool.input}
+									linebreak={linebreak}
 								/>
 							))}
 						</div>
@@ -142,6 +152,7 @@ function MessageComponent({
 						<div className="mt-2 space-y-2">
 							{toolResults?.map((result, index) => (
 								<ToolResultBlock
+									linebreak={linebreak}
 									key={`result-${result.tool_use_id || index}`}
 									content={
 										typeof result.content === "string"

@@ -2,15 +2,21 @@ import { Terminal } from "lucide-react";
 import React, { useMemo } from "react";
 import { useCollapsible } from "../../hooks/useCollapsible";
 import { Button } from "../ui/button";
+import { blockContentClass } from "./block-styles";
 
 interface ToolUsageBlockProps {
 	toolName: string;
 	input?: Record<string, unknown>;
+	linebreak?: boolean;
 }
 
 const MAX_CHARS_COLLAPSE = 200;
 
-function ToolUsageBlockComponent({ toolName, input }: ToolUsageBlockProps) {
+function ToolUsageBlockComponent({
+	toolName,
+	input,
+	linebreak = false,
+}: ToolUsageBlockProps) {
 	const inputStr = useMemo(
 		() => (input ? JSON.stringify(input, null, 2) : ""),
 		[input],
@@ -31,7 +37,7 @@ function ToolUsageBlockComponent({ toolName, input }: ToolUsageBlockProps) {
 						Tool: {toolName}
 					</span>
 				</div>
-				{hasInput && isLong && (
+				{hasInput && isLong && !linebreak && (
 					<Button
 						variant="ghost"
 						size="sm"
@@ -44,11 +50,13 @@ function ToolUsageBlockComponent({ toolName, input }: ToolUsageBlockProps) {
 			</div>
 			{hasInput && (
 				<pre
-					className={`text-xs bg-info/10 p-2 rounded mt-1 overflow-x-auto whitespace-pre text-left ${
-						isExpanded && isLong ? "max-h-96 overflow-y-auto pr-2" : ""
-					}`}
+					className={blockContentClass({
+						linebreak,
+						capped: isExpanded && isLong,
+						extra: "text-xs bg-info/10 p-2 rounded mt-1 text-left",
+					})}
 				>
-					{display}
+					{linebreak ? inputStr : display}
 				</pre>
 			)}
 		</div>

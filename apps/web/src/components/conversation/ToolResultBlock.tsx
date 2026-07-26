@@ -2,14 +2,19 @@ import { FileText } from "lucide-react";
 import React from "react";
 import { useCollapsible } from "../../hooks/useCollapsible";
 import { Button } from "../ui/button";
+import { blockContentClass } from "./block-styles";
 
 interface ToolResultBlockProps {
 	content: string;
+	linebreak?: boolean;
 }
 
 const MAX_CHARS_COLLAPSE = 200;
 
-function ToolResultBlockComponent({ content }: ToolResultBlockProps) {
+function ToolResultBlockComponent({
+	content,
+	linebreak = false,
+}: ToolResultBlockProps) {
 	const { display, isLong, isExpanded, toggle } = useCollapsible(
 		content,
 		MAX_CHARS_COLLAPSE,
@@ -22,7 +27,7 @@ function ToolResultBlockComponent({ content }: ToolResultBlockProps) {
 					<FileText className="w-3 h-3 text-success" />
 					<span className="text-xs font-medium text-success">Tool Result</span>
 				</div>
-				{isLong && (
+				{isLong && !linebreak && (
 					<Button
 						variant="ghost"
 						size="sm"
@@ -35,11 +40,13 @@ function ToolResultBlockComponent({ content }: ToolResultBlockProps) {
 			</div>
 			<div className="text-xs bg-success/10 p-2 rounded mt-1 overflow-hidden">
 				<pre
-					className={`overflow-x-auto whitespace-pre text-left ${
-						isExpanded && isLong ? "max-h-96 overflow-y-auto pr-2" : ""
-					}`}
+					className={blockContentClass({
+						linebreak,
+						capped: isExpanded && isLong,
+						extra: "text-left",
+					})}
 				>
-					{display}
+					{linebreak ? content : display}
 				</pre>
 			</div>
 		</div>

@@ -2,10 +2,12 @@ import type { Role } from "@ccflare/types";
 import React from "react";
 import { useCollapsible } from "../../hooks/useCollapsible";
 import { Button } from "../ui/button";
+import { blockContentClass } from "./block-styles";
 
 interface MessageBubbleProps {
 	role: Role;
 	content: string;
+	linebreak?: boolean;
 }
 
 const MAX_CHARS_COLLAPSE = 300;
@@ -16,7 +18,11 @@ const ROLE_BG_COLORS: Record<Role, string> = {
 	system: "bg-accent/10",
 };
 
-function MessageBubbleComponent({ role, content }: MessageBubbleProps) {
+function MessageBubbleComponent({
+	role,
+	content,
+	linebreak = false,
+}: MessageBubbleProps) {
 	const { display, isLong, isExpanded, toggle } = useCollapsible(
 		content,
 		MAX_CHARS_COLLAPSE,
@@ -27,14 +33,16 @@ function MessageBubbleComponent({ role, content }: MessageBubbleProps) {
 		<div>
 			<div className={`rounded-lg px-4 py-2 ${bgColor}`}>
 				<div
-					className={`whitespace-pre text-sm overflow-x-auto text-left ${
-						isExpanded && isLong ? "max-h-96 overflow-y-auto pr-2" : ""
-					}`}
+					className={blockContentClass({
+						linebreak,
+						capped: isExpanded && isLong,
+						extra: "text-sm text-left",
+					})}
 				>
-					{display}
+					{linebreak ? content : display}
 				</div>
 			</div>
-			{isLong && (
+			{isLong && !linebreak && (
 				<Button
 					variant="ghost"
 					size="sm"

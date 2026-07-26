@@ -4,7 +4,7 @@ export const useCollapsible = (content: string, limit: number) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	const isLong = useMemo(
-		() => content && content.length > limit,
+		() => !!content && content.length > limit,
 		[content, limit],
 	);
 

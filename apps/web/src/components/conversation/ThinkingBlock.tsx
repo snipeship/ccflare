@@ -2,14 +2,19 @@ import { MessageSquare } from "lucide-react";
 import React from "react";
 import { useCollapsible } from "../../hooks/useCollapsible";
 import { Button } from "../ui/button";
+import { blockContentClass } from "./block-styles";
 
 interface ThinkingBlockProps {
 	content: string;
+	linebreak?: boolean;
 }
 
 const MAX_CHARS_COLLAPSE = 200;
 
-function ThinkingBlockComponent({ content }: ThinkingBlockProps) {
+function ThinkingBlockComponent({
+	content,
+	linebreak = false,
+}: ThinkingBlockProps) {
 	const { display, isLong, isExpanded, toggle } = useCollapsible(
 		content,
 		MAX_CHARS_COLLAPSE,
@@ -22,7 +27,7 @@ function ThinkingBlockComponent({ content }: ThinkingBlockProps) {
 					<MessageSquare className="w-3 h-3 text-warning" />
 					<span className="text-xs font-medium text-warning">Thinking</span>
 				</div>
-				{isLong && (
+				{isLong && !linebreak && (
 					<Button
 						variant="ghost"
 						size="sm"
@@ -33,8 +38,13 @@ function ThinkingBlockComponent({ content }: ThinkingBlockProps) {
 					</Button>
 				)}
 			</div>
-			<div className="text-xs text-warning whitespace-pre overflow-x-auto">
-				{display}
+			<div
+				className={blockContentClass({
+					linebreak,
+					extra: "text-xs text-warning",
+				})}
+			>
+				{linebreak ? content : display}
 			</div>
 		</div>
 	);

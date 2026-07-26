@@ -17,12 +17,16 @@ interface ConversationViewProps {
 	requestBody?: string | null;
 	responseBody?: string | null;
 	entries?: ConversationEntry[];
+	linebreak?: boolean;
+	expanded?: boolean;
 }
 
 function ConversationViewComponent({
 	requestBody,
 	responseBody,
 	entries,
+	linebreak = false,
+	expanded = false,
 }: ConversationViewProps) {
 	const messages = useMemo(() => {
 		const resolvedEntries =
@@ -85,7 +89,9 @@ function ConversationViewComponent({
 	}
 
 	return (
-		<div className="h-[calc(65vh-10rem)] w-full overflow-hidden">
+		<div
+			className={`w-full overflow-hidden ${expanded ? "h-full" : "h-[calc(65vh-10rem)]"}`}
+		>
 			<div className="h-full w-full overflow-y-auto overflow-x-hidden px-4 py-3 space-y-3">
 				{messages.map((message, index) => (
 					<Message
@@ -96,6 +102,7 @@ function ConversationViewComponent({
 						tools={message.tools}
 						toolResults={message.toolResults}
 						cleanLineNumbers={cleanLineNumbers}
+						linebreak={linebreak}
 					/>
 				))}
 			</div>
