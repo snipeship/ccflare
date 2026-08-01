@@ -68,6 +68,5 @@ export const QUERY_CONFIG = {
 } as const;
 
 export const API_LIMITS = {
-	requestsDetail: 100,
 	requestsSummary: 50,
 } as const;

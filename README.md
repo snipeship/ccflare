@@ -193,8 +193,8 @@ Key endpoints:
 - `POST /api/accounts/:id/pause` / `resume` — exclude or restore an account
 - `POST /api/accounts/:id/rename` — rename an account
 - `GET /api/requests` — recent request summaries
-- `GET /api/requests/detail` — detailed request info with payloads
-- `GET /api/requests/stream` — live request stream via SSE
+- `GET /api/requests/:id/detail` — detailed request payload for one exact request ID
+- `GET /api/requests/stream` — live request summary stream via SSE
 - `GET /api/analytics` — aggregated analytics
 - `GET /api/stats` — usage and performance stats
 - `POST /api/stats/reset` — reset usage statistics

@@ -137,16 +137,11 @@ export class APIRouter {
 				}) || 50;
 			return requestsSummaryHandler(limit);
 		});
-		this.staticHandlers.set("GET:/api/requests/detail", (_req, url) => {
-			const limitParam = url.searchParams.get("limit");
-			const limit =
-				validateNumber(limitParam || "100", "limit", {
-					min: 1,
-					max: 1000,
-					integer: true,
-				}) || 100;
-			return requestsDetailHandler(limit);
-		});
+		this.addDynamicRoute(
+			"GET",
+			"/api/requests/:requestId/detail",
+			(_req, _url, params) => requestsDetailHandler(params.requestId),
+		);
 		this.addDynamicRoute(
 			"GET",
 			"/api/requests/:requestId/conversation",

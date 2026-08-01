@@ -484,56 +484,50 @@ Get recent request summary.
 curl "http://localhost:8080/api/requests?limit=100"
 ```
 
-#### GET /api/requests/detail
+#### GET /api/requests/:requestId/detail
 
-Get detailed request information including payloads. Request and response bodies are base64-encoded to handle binary data and special characters.
-
-**Query Parameters:**
-- `limit` - Number of requests to return (default: 100)
+Get detailed request information for one exact stored request ID. Request and response bodies are base64-encoded to handle binary data and special characters. Unknown IDs return `404`; records without a stored payload return a metadata-only fallback.
 
 **Response:**
 ```json
-[
-  {
-    "id": "request-uuid",
-    "timestamp": "2024-12-17T10:30:45.123Z",
-    "method": "POST",
-    "path": "/v1/anthropic/v1/messages",
-    "accountUsed": "account1",
-    "statusCode": 200,
-    "success": true,
-    "payload": {
-      "request": {
-        "headers": {...},
-        "body": "base64-encoded-body"
-      },
-      "response": {
-        "status": 200,
-        "headers": {...},
-        "body": "base64-encoded-body"
-      },
-      "meta": {
-        "accountId": "uuid",
-        "accountName": "account1",
-        "retry": 0,
-        "timestamp": 1234567890,
-        "success": true,
-        "rateLimited": false,
-        "accountsAttempted": 1
-      }
+{
+  "id": "request-uuid",
+  "request": {
+    "headers": {...},
+    "body": "base64-encoded-body"
+  },
+  "response": {
+    "status": 200,
+    "headers": {...},
+    "body": "base64-encoded-body"
+  },
+  "meta": {
+    "trace": {
+      "timestamp": 1234567890,
+      "method": "POST",
+      "path": "/v1/anthropic/v1/messages"
+    },
+    "account": {
+      "id": "uuid",
+      "name": "account1"
+    },
+    "transport": {
+      "success": true,
+      "pending": false,
+      "retry": 0
     }
   }
-]
+}
 ```
 
 **Example:**
 ```bash
-curl "http://localhost:8080/api/requests/detail?limit=10"
+curl "http://localhost:8080/api/requests/request-uuid/detail"
 ```
 
 #### GET /api/requests/stream
 
-Stream real-time request events via Server-Sent Events (SSE).
+Stream metadata-only real-time request events via Server-Sent Events (SSE). The stream emits ingress, start, and completed summary events; it never includes stored request or response bodies.
 
 **Response:** SSE stream with request events
 

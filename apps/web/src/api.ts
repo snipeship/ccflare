@@ -164,11 +164,9 @@ class API extends HttpClient {
 		return eventSource;
 	}
 
-	async getRequestsDetail(
-		limit: number = API_LIMITS.requestsDetail,
-	): Promise<RequestPayload[]> {
-		return this.getJson<RequestPayload[]>(
-			`/api/requests/detail?limit=${limit}`,
+	async getRequestDetail(requestId: string): Promise<RequestPayload> {
+		return this.getJson<RequestPayload>(
+			`/api/requests/${encodeURIComponent(requestId)}/detail`,
 		);
 	}
 

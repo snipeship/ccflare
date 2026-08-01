@@ -32,13 +32,13 @@ import type {
 	ChunkMessage,
 	EndMessage,
 	IncomingWorkerMessage,
-	PayloadMessage,
 	PreExtractedUsage,
 	ReadyMessage,
 	ShutdownCompleteMessage,
 	StartMessage,
 	SummaryMessage,
 } from "./worker-messages";
+import { createCompletionMessages } from "./worker-messages";
 
 interface RequestState {
 	startMessage: StartMessage;
@@ -861,15 +861,9 @@ async function handleEnd(msg: EndMessage): Promise<void> {
 		clientSessionId,
 	};
 
-	self.postMessage({
-		type: "summary",
-		summary,
-	} satisfies SummaryMessage);
-
-	self.postMessage({
-		type: "payload",
-		payload: { ...payload, error: msg.error },
-	} satisfies PayloadMessage);
+	for (const message of createCompletionMessages(summary)) {
+		self.postMessage(message satisfies SummaryMessage);
+	}
 
 	// Clean up
 	requests.delete(msg.requestId);

@@ -8,7 +8,7 @@ interface CopyButtonProps {
 	 * String or function returning the string to copy.
 	 */
 	value?: string;
-	getValue?: () => string;
+	getValue?: () => string | Promise<string>;
 	/**
 	 * Forwarded props to underlying Button
 	 */
@@ -25,6 +25,23 @@ interface CopyButtonProps {
 	title?: string;
 }
 
+export async function resolveCopyValue(
+	lock: { current: boolean },
+	producer: () => string | Promise<string>,
+	writeText: (text: string) => Promise<void>,
+): Promise<boolean> {
+	if (lock.current) return false;
+	lock.current = true;
+	try {
+		const text = await producer();
+		if (!text) return false;
+		await writeText(text);
+		return true;
+	} finally {
+		lock.current = false;
+	}
+}
+
 /**
  * A small wrapper around the standard Button that copies supplied text to the
  * clipboard and temporarily shows a "Copied!" label with a subtle animation.
@@ -39,23 +56,32 @@ export function CopyButton({
 	title,
 }: CopyButtonProps) {
 	const [copied, setCopied] = useState(false);
+	const [resolving, setResolving] = useState(false);
+	const resolvingRef = useRef(false);
 	const timeoutRef = useRef<number | null>(null);
 
-	const handleCopy = () => {
-		const text = typeof getValue === "function" ? getValue() : (value ?? "");
-		if (!text) return;
-
-		navigator.clipboard
-			.writeText(text)
-			.then(() => {
+	const handleCopy = async () => {
+		if (resolvingRef.current) return;
+		setResolving(true);
+		try {
+			const didCopy = await resolveCopyValue(
+				resolvingRef,
+				typeof getValue === "function" ? getValue : () => value ?? "",
+				(text) => navigator.clipboard.writeText(text),
+			);
+			if (didCopy) {
 				setCopied(true);
 				// Reset after 1.5s
 				if (timeoutRef.current) {
 					window.clearTimeout(timeoutRef.current);
 				}
 				timeoutRef.current = window.setTimeout(() => setCopied(false), 1500);
-			})
-			.catch((err) => console.error("Failed to copy", err));
+			}
+		} catch (err) {
+			console.error("Failed to copy", err);
+		} finally {
+			setResolving(false);
+		}
 	};
 
 	return (
@@ -63,6 +89,7 @@ export function CopyButton({
 			variant={variant}
 			size={size}
 			onClick={handleCopy}
+			disabled={resolving}
 			title={title}
 			className={cn("relative overflow-hidden", className)}
 		>

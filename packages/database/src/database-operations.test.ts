@@ -93,6 +93,41 @@ describe("DatabaseOperations", () => {
 		}
 	});
 
+	it("loads one request detail row by exact stored id", () => {
+		const tempDir = mkdtempSync(join(tmpdir(), "ccflare-db-ops-"));
+		tempDirs.push(tempDir);
+		const dbOps = new DatabaseOperations(join(tempDir, "ccflare.db"));
+
+		try {
+			for (const id of ["selected", "other"]) {
+				dbOps.saveRequestMeta(
+					id,
+					"POST",
+					`/${id}`,
+					"openai",
+					`/${id}`,
+					null,
+					200,
+				);
+				dbOps.saveRequestPayload(id, {
+					id,
+					request: { headers: {}, body: `${id}-body` },
+				});
+			}
+
+			expect(dbOps.getRequestDetailRow("selected")).toMatchObject({
+				id: "selected",
+				payload_json: expect.stringContaining("selected-body"),
+			});
+			expect(dbOps.getRequestDetailRow("selected")?.payload_json).not.toContain(
+				"other-body",
+			);
+			expect(dbOps.getRequestDetailRow("missing")).toBeNull();
+		} finally {
+			dbOps.close();
+		}
+	});
+
 	it("aggregates analytics through the repository facade", () => {
 		const tempDir = mkdtempSync(join(tmpdir(), "ccflare-db-ops-"));
 		tempDirs.push(tempDir);

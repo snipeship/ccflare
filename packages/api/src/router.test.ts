@@ -874,7 +874,7 @@ describe("APIRouter", () => {
 		]);
 	});
 
-	it("returns structured request payload metadata sections", async () => {
+	it("keeps large payloads out of summaries and returns one exact detail", async () => {
 		const { router, dbOps } = createRouterContext();
 		const { accountId } = await createApiKeyAccount(router, {
 			name: "payload-owner",
@@ -893,9 +893,10 @@ describe("APIRouter", () => {
 			21,
 			0,
 		);
+		const sentinel = `sentinel-${"x".repeat(3 * 1024 * 1024)}`;
 		dbOps.saveRequestPayload("request-payload", {
 			id: "request-payload",
-			request: { headers: {}, body: null },
+			request: { headers: {}, body: sentinel },
 			response: { status: 200, headers: {}, body: null },
 			meta: {
 				trace: {
@@ -916,13 +917,24 @@ describe("APIRouter", () => {
 			},
 		});
 
+		const summaryResponse = await apiRequest(
+			router,
+			"GET",
+			"/api/requests?limit=200",
+		);
+		const summaryText = await summaryResponse.text();
+		expect(summaryResponse.status).toBe(200);
+		expect(summaryText).not.toContain("sentinel-");
+
 		const response = await apiRequest(
 			router,
 			"GET",
-			"/api/requests/detail?limit=1",
+			"/api/requests/request-payload/detail",
 		);
 		expect(response.status).toBe(200);
-		expect((await response.json()) as Array<Record<string, unknown>>).toEqual([
+		const detailText = await response.text();
+		expect(detailText).toContain(sentinel);
+		expect(JSON.parse(detailText) as Record<string, unknown>).toEqual(
 			expect.objectContaining({
 				id: "request-payload",
 				meta: {
@@ -944,7 +956,13 @@ describe("APIRouter", () => {
 					},
 				},
 			}),
-		]);
+		);
+		expect(
+			(await apiRequest(router, "GET", "/api/requests/unknown/detail")).status,
+		).toBe(404);
+		expect(
+			(await apiRequest(router, "GET", "/api/requests/detail?limit=1")).status,
+		).toBe(404);
 	});
 
 	it("returns the conversation ancestor chain for a request", async () => {

@@ -27,6 +27,7 @@ import {
 import { AuthSessionRepository } from "./repositories/auth-session.repository";
 import {
 	type RequestData,
+	type RequestDetailRow,
 	RequestRepository,
 } from "./repositories/request.repository";
 import { StatsRepository } from "./repositories/stats.repository";
@@ -287,6 +288,10 @@ export class DatabaseOperations implements StrategyStore, Disposable {
 		limit = 50,
 	): Array<{ id: string; json: string; account_name: string | null }> {
 		return this.requests.listPayloadsWithAccountNames(limit);
+	}
+
+	getRequestDetailRow(requestId: string): RequestDetailRow | null {
+		return this.requests.findDetailRow(requestId);
 	}
 
 	listResponseChainPayloadsWithAccountNames(

@@ -19,7 +19,9 @@ import {
 	X,
 } from "lucide-react";
 import { useState } from "react";
+import { api } from "../api";
 import { useRequestsPageModel } from "../hooks/useRequestsPageModel";
+import type { RequestListItem } from "../lib/request-list-model";
 import { getStatusCodeTextClass } from "../lib/request-status";
 import { CopyButton } from "./CopyButton";
 import { RequestDetailsModal } from "./RequestDetailsModal";
@@ -52,12 +54,11 @@ export function RequestsTab() {
 	const [expandedRequests, setExpandedRequests] = useState<Set<string>>(
 		new Set(),
 	);
-	const [modalRequest, setModalRequest] = useState<RequestPayload | null>(null);
+	const [modalItem, setModalItem] = useState<RequestListItem | null>(null);
 	const [showFilters, setShowFilters] = useState(false);
 
 	const {
 		requests,
-		summaries,
 		allRequests,
 		accountFilter,
 		setAccountFilter,
@@ -422,9 +423,12 @@ export function RequestsTab() {
 					<div className="space-y-2">
 						{requests.map((request) => {
 							const isExpanded = expandedRequests.has(request.id);
-							const isError = request.error || !request.meta.transport.success;
-							const statusCode = request.response?.status;
-							const summary = summaries.get(request.id);
+							const isError =
+								!request.pending &&
+								(Boolean(request.summary?.errorMessage) ||
+									request.summary?.success === false);
+							const statusCode = request.statusCode;
+							const summary = request.summary ?? undefined;
 
 							return (
 								<div
@@ -432,9 +436,7 @@ export function RequestsTab() {
 									className={`border rounded-lg p-3 transition-all duration-300 ${
 										isError ? "border-destructive/50" : "border-border"
 									} ${
-										request.meta.transport.pending
-											? "animate-pulse opacity-70"
-											: "opacity-100"
+										request.pending ? "animate-pulse opacity-70" : "opacity-100"
 									}`}
 								>
 									<button
@@ -449,18 +451,16 @@ export function RequestsTab() {
 												<ChevronRight className="h-4 w-4" />
 											)}
 											<span className="text-sm font-mono">
-												{new Date(
-													request.meta.trace.timestamp,
-												).toLocaleTimeString()}
+												{new Date(request.timestamp).toLocaleTimeString()}
 											</span>
-											{(request.meta.trace.method || summary?.method) && (
+											{request.method && (
 												<span className="text-sm font-medium">
-													{request.meta.trace.method || summary?.method}
+													{request.method}
 												</span>
 											)}
-											{(request.meta.trace.path || summary?.path) && (
+											{request.path && (
 												<span className="text-sm text-muted-foreground font-mono">
-													{request.meta.trace.path || summary?.path}
+													{request.path}
 												</span>
 											)}
 											{statusCode && (
@@ -477,8 +477,7 @@ export function RequestsTab() {
 													{summary.model}
 												</Badge>
 											)}
-											{(summary?.totalTokens ||
-												request.meta.transport.pending) && (
+											{(summary?.totalTokens || request.pending) && (
 												<Badge variant="outline" className="text-xs">
 													{summary?.totalTokens
 														? formatTokens(summary.totalTokens)
@@ -486,7 +485,7 @@ export function RequestsTab() {
 													tokens
 												</Badge>
 											)}
-											{(summary?.costUsd || request.meta.transport.pending) && (
+											{(summary?.costUsd || request.pending) && (
 												<Badge variant="default" className="text-xs">
 													{summary?.costUsd && summary.costUsd > 0
 														? formatCost(summary.costUsd)
@@ -499,37 +498,35 @@ export function RequestsTab() {
 														{formatTokensPerSecond(summary.tokensPerSecond)}
 													</Badge>
 												)}
-											{(request.meta.account.name ||
-												request.meta.account.id) && (
+											{(request.accountName || request.accountId) && (
 												<span className="text-sm text-muted-foreground">
 													via{" "}
-													{request.meta.account.name ||
-														`${request.meta.account.id?.slice(0, 8)}...`}
+													{request.accountName ||
+														`${request.accountId?.slice(0, 8)}...`}
 												</span>
 											)}
-											{request.meta.transport.rateLimited && (
+											{statusCode === 429 && (
 												<Badge variant="warning" className="text-xs">
 													Rate Limited
 												</Badge>
 											)}
-											{request.error && (
+											{request.summary?.errorMessage && (
 												<span className="text-sm text-destructive">
-													Error: {request.error}
+													Error: {request.summary.errorMessage}
 												</span>
 											)}
 										</div>
 										<div className="text-sm text-muted-foreground flex items-center gap-2">
-											{(summary?.responseTimeMs ||
-												request.meta.transport.pending) && (
+											{(summary?.responseTimeMs || request.pending) && (
 												<span>
 													{summary?.responseTimeMs
 														? formatDuration(summary.responseTimeMs)
 														: "--"}
 												</span>
 											)}
-											{request.meta.transport.retry !== undefined &&
-												request.meta.transport.retry > 0 && (
-													<span>Retry {request.meta.transport.retry}</span>
+											{summary?.failoverAttempts !== undefined &&
+												summary.failoverAttempts > 0 && (
+													<span>Retry {summary.failoverAttempts}</span>
 												)}
 											<span>ID: {request.id.slice(0, 8)}...</span>
 										</div>
@@ -540,7 +537,7 @@ export function RequestsTab() {
 										<Button
 											variant="ghost"
 											size="icon"
-											onClick={() => setModalRequest(request)}
+											onClick={() => setModalItem(request)}
 											title="View Details"
 										>
 											<Eye className="h-4 w-4" />
@@ -549,20 +546,21 @@ export function RequestsTab() {
 											variant="ghost"
 											size="icon"
 											title="Copy as JSON"
-											getValue={() => {
+											getValue={async () => {
+												const detail = await api.getRequestDetail(request.id);
 												const decoded: RequestPayload & { decoded?: true } = {
-													...request,
+													...detail,
 													request: {
-														...request.request,
-														body: request.request.body
-															? decodeBase64Body(request.request.body)
+														...detail.request,
+														body: detail.request.body
+															? decodeBase64Body(detail.request.body)
 															: null,
 													},
-													response: request.response
+													response: detail.response
 														? {
-																...request.response,
-																body: request.response.body
-																	? decodeBase64Body(request.response.body)
+																...detail.response,
+																body: detail.response.body
+																	? decodeBase64Body(detail.response.body)
 																	: null,
 															}
 														: null,
@@ -579,7 +577,7 @@ export function RequestsTab() {
 											<Button
 												variant="outline"
 												size="sm"
-												onClick={() => setModalRequest(request)}
+												onClick={() => setModalItem(request)}
 												className="w-full"
 											>
 												<Eye className="h-4 w-4 mr-2" />
@@ -594,12 +592,11 @@ export function RequestsTab() {
 				)}
 			</CardContent>
 
-			{modalRequest && (
+			{modalItem && (
 				<RequestDetailsModal
-					request={modalRequest}
-					summary={summaries.get(modalRequest.id)}
+					item={modalItem}
 					isOpen={true}
-					onClose={() => setModalRequest(null)}
+					onClose={() => setModalItem(null)}
 				/>
 			)}
 		</Card>

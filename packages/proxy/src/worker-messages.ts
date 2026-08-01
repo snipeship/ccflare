@@ -100,14 +100,14 @@ export interface SummaryMessage {
 	summary: import("@ccflare/types").RequestSummary;
 }
 
-export interface PayloadMessage {
-	type: "payload";
-	payload: import("@ccflare/types").RequestPayload;
+export function createCompletionMessages(
+	summary: import("@ccflare/types").RequestSummary,
+): SummaryMessage[] {
+	return [{ type: "summary", summary }];
 }
 
 export type OutgoingWorkerMessage =
 	| SummaryMessage
-	| PayloadMessage
 	| ReadyMessage
 	| AckMessage
 	| ShutdownCompleteMessage;

@@ -51,6 +51,11 @@ export interface RequestData {
 	};
 }
 
+export interface RequestDetailRow extends RequestRow {
+	account_name: string | null;
+	payload_json: string | null;
+}
+
 interface PersistRequestData extends RequestData {
 	timestamp?: number;
 	payload?: unknown;
@@ -295,6 +300,19 @@ export class RequestRepository extends BaseRepository<RequestData> {
 			log.warn(`Failed to parse request payload for ${id}`, error);
 			return null;
 		}
+	}
+
+	findDetailRow(requestId: string): RequestDetailRow | null {
+		return this.get<RequestDetailRow>(
+			`
+				SELECT r.*, a.name AS account_name, rp.json AS payload_json
+				FROM requests r
+				LEFT JOIN accounts a ON r.account_used = a.id
+				LEFT JOIN request_payloads rp ON rp.id = r.id
+				WHERE r.id = ?
+			`,
+			[requestId],
+		);
 	}
 
 	listPayloads(limit = 50): Array<{ id: string; json: string }> {

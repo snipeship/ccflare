@@ -123,9 +123,9 @@ For HTTP proxy traffic:
 
 For streaming and websocket traffic:
 
-- the proxy emits chunk/summary payloads to the worker
+- the proxy emits response chunks and completion metadata to the worker
 - the worker parses provider-specific usage events
-- final summaries and payloads are persisted asynchronously
+- full payloads are persisted asynchronously, while only final summaries return to the main thread and request-summary SSE stream
 
 ## Event Streaming
 

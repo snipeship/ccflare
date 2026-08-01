@@ -1,6 +1,6 @@
 import { requestEvents, ServiceUnavailableError } from "@ccflare/core";
 import { Logger } from "@ccflare/logger";
-import { isRequestPayload, isRequestSummary } from "@ccflare/types";
+import { isRequestSummary } from "@ccflare/types";
 import {
 	createRequestMetadata,
 	ERROR_MESSAGES,
@@ -43,11 +43,6 @@ export function getUsageWorker(): UsageWorkerTransport {
 					requestEvents.emit("event", {
 						type: "summary",
 						payload: data.summary,
-					});
-				} else if (data.type === "payload" && isRequestPayload(data.payload)) {
-					requestEvents.emit("event", {
-						type: "payload",
-						payload: data.payload,
 					});
 				}
 			},

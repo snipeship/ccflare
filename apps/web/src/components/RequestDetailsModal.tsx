@@ -15,6 +15,7 @@ import { Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { api } from "../api";
 import { queryKeys } from "../lib/query-keys";
+import type { RequestListItem } from "../lib/request-list-model";
 import { getStatusCodeBadgeVariant } from "../lib/request-status";
 import { ConversationView } from "./ConversationView";
 import { CopyButton } from "./CopyButton";
@@ -32,26 +33,34 @@ import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 interface RequestDetailsModalProps {
-	request: RequestPayload;
-	summary: RequestSummary | undefined;
+	item: RequestListItem;
 	isOpen: boolean;
 	onClose: () => void;
 }
 
 export function RequestDetailsModal({
-	request,
-	summary,
+	item,
 	isOpen,
 	onClose,
 }: RequestDetailsModalProps) {
 	const [beautifyMode, setBeautifyMode] = useState(true);
+	const summary: RequestSummary | undefined = item.summary ?? undefined;
+	const {
+		data: request,
+		isLoading: detailLoading,
+		error: detailError,
+	} = useQuery<RequestPayload>({
+		queryKey: queryKeys.requestDetail(item.id),
+		queryFn: () => api.getRequestDetail(item.id),
+		enabled: isOpen,
+	});
 	const {
 		data: conversationChain = [],
 		isLoading: conversationLoading,
 		error: conversationError,
 	} = useQuery({
-		queryKey: queryKeys.requestConversation(request.id),
-		queryFn: () => api.getRequestConversation(request.id),
+		queryKey: queryKeys.requestConversation(item.id),
+		queryFn: () => api.getRequestConversation(item.id),
 		enabled: isOpen,
 	});
 	const conversationEntries = useMemo(
@@ -71,7 +80,40 @@ export function RequestDetailsModal({
 	const formatBody = (body: string | null) =>
 		formatBodyBase(body, beautifyMode);
 
-	const statusCode = request.response?.status;
+	const statusCode = item.statusCode;
+
+	if (!request) {
+		return (
+			<Dialog open={isOpen} onOpenChange={onClose}>
+				<DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<Eye className="h-5 w-5" />
+							Request Details
+						</DialogTitle>
+						<DialogDescription className="flex items-center gap-2 flex-wrap">
+							<span className="font-mono text-sm">
+								{formatTimestamp(item.timestamp)}
+							</span>
+							<span className="font-medium">{item.method}</span>
+							<span className="font-mono">{item.path}</span>
+						</DialogDescription>
+					</DialogHeader>
+					<div
+						className={`flex items-center justify-center h-32 ${
+							detailError ? "text-destructive" : "text-muted-foreground"
+						}`}
+					>
+						{detailLoading
+							? "Loading request details..."
+							: detailError instanceof Error
+								? detailError.message
+								: "Failed to load request details"}
+					</div>
+				</DialogContent>
+			</Dialog>
+		);
+	}
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
@@ -84,7 +126,7 @@ export function RequestDetailsModal({
 					<DialogDescription className="flex items-center justify-between">
 						<div className="flex items-center gap-2 flex-wrap">
 							<span className="font-mono text-sm">
-								{formatTimestamp(request.meta.trace.timestamp)}
+								{formatTimestamp(item.timestamp)}
 							</span>
 							{statusCode && (
 								<Badge variant={getStatusCodeBadgeVariant(statusCode)}>

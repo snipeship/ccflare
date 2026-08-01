@@ -15,6 +15,8 @@ export const queryKeys = {
 		] as const,
 	requests: (limit?: number) =>
 		[...queryKeys.all, "requests", { limit }] as const,
+	requestDetail: (requestId: string) =>
+		[...queryKeys.all, "request-detail", { requestId }] as const,
 	requestConversation: (requestId: string) =>
 		[...queryKeys.all, "request-conversation", { requestId }] as const,
 	logs: () => [...queryKeys.all, "logs"] as const,
